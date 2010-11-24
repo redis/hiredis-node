@@ -98,6 +98,10 @@ Reader::Reader() {
     pval = NULL;
 }
 
+Reader::~Reader() {
+    redisReplyReaderFree(reader);
+}
+
 void Reader::setNestedArrayPointer(Persistent<Value> *v) {
     assert(pval == NULL);
     pval = v;
@@ -162,6 +166,10 @@ Handle<Value> Reader::Get(const Arguments &args) {
     if (redisReplyReaderGetReply(r->reader,&_wrapped) == REDIS_OK) {
         _reply = val_unwrap(_wrapped);
     } else {
+        /* Dispose persistent value pointer when available. The pointer to
+         * the root object will be cleaned up via the freeObject function. */
+        r->clearNestedArrayPointer();
+
         char *error = redisReplyReaderGetError(r->reader);
         return ThrowException(Exception::Error(String::New(error)));
     }

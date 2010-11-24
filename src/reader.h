@@ -9,6 +9,8 @@ using namespace node;
 class Reader : ObjectWrap {
 public:
     Reader();
+    ~Reader();
+
     static void Initialize(Handle<Object> target);
     static Handle<Value> New(const Arguments& args);
     static Handle<Value> Feed(const Arguments &args);

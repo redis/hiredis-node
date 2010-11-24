@@ -87,10 +87,12 @@ exports.testLeaks = function(beforeExit) {
     var leaks = spawn("leaks", [process.pid]);
     leaks.stdout.on("data", function(data) {
         var str = data.toString();
+        var notice = "Node 0.2.5 always leaks 16 bytes (this is " + process.versions.node + ")";
         var matches;
         if ((matches = /(\d+) leaks?/i.exec(str)) != null) {
             if (parseInt(matches[1]) > 0) {
                 console.log(str);
+                console.log('\x1B[31mNotice: ' + notice + '\x1B[0m');
             }
         }
         done = 1;
