@@ -72,3 +72,9 @@ exports.testMultiBulkReplyWithNonStringValues = function() {
     assert.eql([1, "OK", null], reader.get());
 }
 
+exports.testFeedWithBuffer = function() {
+    var reader = new hiredis.Reader();
+    reader.feed(new Buffer("$3\r\nfoo\r\n"));
+    assert.eql("foo", reader.get());
+}
+

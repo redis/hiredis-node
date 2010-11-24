@@ -1,5 +1,6 @@
 #include <v8.h>
 #include <node.h>
+#include <node_buffer.h>
 #include <hiredis/hiredis.h>
 #include "reader.h"
 
@@ -132,13 +133,22 @@ Handle<Value> Reader::Feed(const Arguments &args) {
     HandleScope scope;
     Reader *r = ObjectWrap::Unwrap<Reader>(args.This());
 
-    if (args.Length() == 0 || !args[0]->IsString()) {
+    if (args.Length() == 0) {
         return ThrowException(Exception::Error(
-                    String::New("First argument must be a string")));
+            String::New("First argument must be a string or buffer")));
+    } else {
+        if (Buffer::HasInstance(args[0])) {
+            Buffer *buffer = ObjectWrap::Unwrap<Buffer>(args[0]->ToObject());
+            redisReplyReaderFeed(r->reader, buffer->data(), buffer->length());
+        } else if (args[0]->IsString()) {
+            String::Utf8Value str(args[0]->ToString());
+            redisReplyReaderFeed(r->reader, *str, str.length());
+        } else {
+            return ThrowException(Exception::Error(
+                String::New("Invalid argument")));
+        }
     }
 
-    String::Utf8Value data(args[0]->ToString());
-    redisReplyReaderFeed(r->reader, *data, data.length());
     return args.This();
 }
 
