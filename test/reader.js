@@ -1,4 +1,5 @@
 var assert = require("assert"),
+    spawn = require('child_process').spawn,
     hiredis = require("../src/build/default/hiredis");
 
 exports.testCreateReader = function() {
@@ -76,5 +77,29 @@ exports.testFeedWithBuffer = function() {
     var reader = new hiredis.Reader();
     reader.feed(new Buffer("$3\r\nfoo\r\n"));
     assert.eql("foo", reader.get());
+}
+
+exports.testLeaks = function(beforeExit) {
+    /* The "leaks" utility is only available on OSX. */
+    if (process.platform != "darwin") return;
+
+    var done = 0;
+    var leaks = spawn("leaks", [process.pid]);
+    leaks.stdout.on("data", function(data) {
+        var str = data.toString();
+        var matches;
+        if ((matches = /(\d+) leaks?/i.exec(str)) != null) {
+            if (parseInt(matches[1]) > 0) {
+                console.log(str);
+            }
+        }
+        done = 1;
+    });
+
+    beforeExit(function() {
+        setTimeout(function() {
+            assert.ok(done, "Leaks test should have completed");
+        }, 100);
+    });
 }
 
