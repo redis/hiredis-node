@@ -1,7 +1,7 @@
 var hiredis = require("./hiredis"),
     num_clients = 10,
     active_clients = 0,
-    pipeline = 1,
+    pipeline = 0,
     num_requests = parseInt(process.argv[2]) || 20000,
     issued_requests = 0,
     test_start;
@@ -45,17 +45,22 @@ tests.push({
 });
 
 function call(client, test) {
-    var i = issued_requests++;
-    client.write.apply(client,test.command);
-    client.once("reply", function() {
+    client.on("reply", function() {
         if (issued_requests < num_requests) {
-            call(client, test);
+            request();
         } else {
             client.end();
             if (--active_clients == 0)
                 done(test);
         }
     });
+
+    function request() {
+        issued_requests++;
+        client.write.apply(client,test.command);
+    };
+
+    request();
 }
 
 function done(test) {
