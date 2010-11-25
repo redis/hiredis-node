@@ -64,6 +64,8 @@ static void *createArray(const redisReadTask *task, int size) {
 
 static void *createString(const redisReadTask *task, char *str, size_t len) {
     Local<Value> v = String::New(str,len);
+    if (task->type == REDIS_REPLY_ERROR)
+        v = Exception::Error(v->ToString());
     return tryParentize(task,v);
 }
 

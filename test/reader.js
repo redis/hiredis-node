@@ -22,7 +22,9 @@ exports.testIntegerReply = function() {
 exports.testErrorReply = function() {
     var reader = new hiredis.Reader();
     reader.feed("-ERR foo\r\n");
-    assert.equal("ERR foo", reader.get());
+    var reply = reader.get();
+    assert.equal(Error, reply.constructor);
+    assert.equal("ERR foo", reply.message);
 }
 
 exports.testNullBulkReply = function() {
