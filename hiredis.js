@@ -13,13 +13,7 @@ exports.createConnection = function(port, host) {
         _write.call(s, "*" + args.length + "\r\n");
         for (i = 0; i < args.length; i++) {
             var arg = args[i];
-            if (arg instanceof Buffer) {
-                _write.call(s, "$" + arg.length + "\r\n");
-                _write.call(s, arg);
-                _write.call(s, "\r\n");
-            } else {
-                _write.call(s, "$" + arg.length + "\r\n" + arg + "\r\n");
-            }
+            _write.call(s, "$" + arg.length + "\r\n" + arg + "\r\n");
         }
     }
 
