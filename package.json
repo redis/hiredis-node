@@ -1,0 +1,18 @@
+{
+  "name": "hiredis",
+  "description": "Wrapper for reply processing code in hiredis",
+  "version": "0.1.0",
+  "homepage": "http://github.com/pietern/hiredis-node",
+  "author": "Pieter Noordhuis <pcnoordhuis@gmail.com>",
+  "main": "hiredis",
+  "directories": {
+    "lib": "."
+  },
+  "scripts": {
+    "preinstall": "cd deps/hiredis && make static && cd ../.. && node-waf configure build",
+    "test": "expresso"
+  },
+  "engines": {
+    "node": "*"
+  }
+}
