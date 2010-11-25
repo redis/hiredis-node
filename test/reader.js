@@ -79,6 +79,14 @@ exports.testFeedWithBuffer = function() {
     assert.eql("foo", reader.get());
 }
 
+exports.testUndefinedReplyOnIncompleteFeed = function() {
+    var reader = new hiredis.Reader();
+    reader.feed("$3\r\nfoo");
+    assert.eql(undefined, reader.get());
+    reader.feed("\r\n");
+    assert.eql("foo", reader.get());
+}
+
 exports.testLeaks = function(beforeExit) {
     /* The "leaks" utility is only available on OSX. */
     if (process.platform != "darwin") return;

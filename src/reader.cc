@@ -186,8 +186,13 @@ Handle<Value> Reader::Get(const Arguments &args) {
     Local<Value> reply;
 
     if (redisReplyReaderGetReply(r->reader,&_wrapped) == REDIS_OK) {
-        assert(_wrapped == r->pval[0]);
-        _reply = val_unwrap(_wrapped);
+        if (_wrapped == NULL) {
+            /* Needs more data */
+            return Undefined();
+        } else {
+            assert(_wrapped == r->pval[0]);
+            _reply = val_unwrap(_wrapped);
+        }
     } else {
         r->clearPersistentPointers();
         char *error = redisReplyReaderGetError(r->reader);
