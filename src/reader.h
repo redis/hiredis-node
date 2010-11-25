@@ -16,8 +16,9 @@ public:
     static Handle<Value> Feed(const Arguments &args);
     static Handle<Value> Get(const Arguments &args);
 
-    void setNestedArrayPointer(Persistent<Value>*);
-    void clearNestedArrayPointer();
+    void pushPersistentPointer(Persistent<Value>*);
+    void popPersistentPointer();
+    void clearPersistentPointers();
 
 private:
     void *reader;
@@ -26,7 +27,8 @@ private:
      * nested arrays, that can be passed as parent for underlying elements.
      * These pointers need to be cleaned up when they are no longer needed, so
      * keep a reference here. */
-    Persistent<Value>* pval;
+    Persistent<Value>* pval[2];
+    int pidx;
 
 };
 
