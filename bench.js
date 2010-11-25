@@ -1,17 +1,10 @@
 var hiredis = require("./hiredis"),
     num_clients = 10,
-    clients = new Array(num_clients),
     active_clients = 0,
+    pipeline = 1,
     num_requests = parseInt(process.argv[2]) || 20000,
     issued_requests = 0,
     test_start;
-
-function create_clients() {
-    var i = num_clients;
-    while(i--) {
-        clients[i] = hiredis.createConnection();
-    }
-}
 
 var tests = [];
 tests.push({
@@ -72,16 +65,45 @@ function done(test) {
     next();
 }
 
+function concurrent_test(test) {
+    var i = num_clients;
+    var client;
+
+    issued_requests = 0;
+    test_start = new Date;
+    while(i-- && issued_requests < num_requests) {
+        active_clients++;
+        client = hiredis.createConnection();
+        call(client, test);
+    }
+}
+
+function pipelined_test(test) {
+    var client = hiredis.createConnection();
+    var received_replies = 0;
+
+    issued_requests = 0;
+    while (issued_requests < num_requests) {
+        issued_requests++;
+        client.write.apply(client,test.command);
+    }
+
+    test_start = new Date;
+    client.on("reply", function() {
+        if (++received_replies == num_requests) {
+            client.end();
+            done(test);
+        }
+    });
+}
+
 function next() {
     var test = tests.shift();
-    var i = num_clients;
     if (test) {
-        create_clients();
-        issued_requests = 0;
-        test_start = new Date;
-        while(i-- && issued_requests < num_requests) {
-            active_clients++;
-            call(clients[i], test);
+        if (pipeline) {
+            pipelined_test(test);
+        } else {
+            concurrent_test(test);
         }
     }
 }
