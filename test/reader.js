@@ -1,6 +1,6 @@
 var assert = require("assert"),
     spawn = require('child_process').spawn,
-    hiredis = require("../src/build/default/hiredis");
+    hiredis = require("../build/default/hiredis");
 
 exports.testCreateReader = function() {
     var reader = new hiredis.Reader();
