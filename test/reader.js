@@ -43,6 +43,12 @@ exports.testBulkReply = function() {
     assert.equal("foo", reader.get());
 }
 
+exports.testBulkReplyWithEncoding = function() {
+    var reader = new hiredis.Reader();
+    reader.feed("$" + Buffer.byteLength("☃") + "\r\n☃\r\n");
+    assert.equal("☃", reader.get());
+}
+
 exports.testNullMultiBulkReply = function() {
     var reader = new hiredis.Reader();
     reader.feed("*-1\r\n");
