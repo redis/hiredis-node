@@ -1,6 +1,7 @@
 #include <v8.h>
 #include <node.h>
 #include <node_buffer.h>
+#include <node_version.h>
 #include <hiredis/hiredis.h>
 #include "reader.h"
 
@@ -151,8 +152,20 @@ Handle<Value> Reader::Feed(const Arguments &args) {
             String::New("First argument must be a string or buffer")));
     } else {
         if (Buffer::HasInstance(args[0])) {
-            Buffer *buffer = ObjectWrap::Unwrap<Buffer>(args[0]->ToObject());
-            redisReplyReaderFeed(r->reader, buffer->data(), buffer->length());
+            Local<Object> buffer_object = args[0]->ToObject();
+            char *data;
+            size_t length;
+
+#if NODE_VERSION_AT_LEAST(0,3,0)
+            data = Buffer::Data(buffer_object);
+            length = Buffer::Length(buffer_object);
+#else
+            Buffer *buffer = ObjectWrap::Unwrap<Buffer>(buffer_object);
+            data = buffer->data();
+            length = buffer->length();
+#endif
+
+            redisReplyReaderFeed(r->reader, data, length);
         } else if (args[0]->IsString()) {
             String::Utf8Value str(args[0]->ToString());
             redisReplyReaderFeed(r->reader, *str, str.length());
