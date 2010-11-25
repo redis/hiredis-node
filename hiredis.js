@@ -21,7 +21,7 @@ exports.createConnection = function(port, host) {
         var reply;
         r.feed(data);
         try {
-            while(reply = r.get())
+            while((reply = r.get()) !== undefined)
                 s.emit("reply", reply);
         } catch(err) {
             r = null;
