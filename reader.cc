@@ -22,7 +22,7 @@ static Persistent<Value> *tryParentize(const redisReadTask *task, const Local<Va
     Reader *r = reinterpret_cast<Reader*>(task->privdata);
 
     if (task->parent != NULL) {
-        Persistent<Value> *_p = val_unwrap(task->parent);
+        Persistent<Value> *_p = val_unwrap(task->parent->obj);
         assert((*_p)->IsArray());
 
         /* We know it is an array, so we can safely cast it */
@@ -31,7 +31,7 @@ static Persistent<Value> *tryParentize(const redisReadTask *task, const Local<Va
 
         /* When this is the last element of a nested array, the persistent
          * handle to it should be removed because it is no longer needed. */
-        if (task->idx == task->parentTask->elements-1) {
+        if (task->idx == task->parent->elements-1) {
             r->popPersistentPointer();
         }
 
