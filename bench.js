@@ -32,15 +32,19 @@ tests.push({
     command: ["LPUSH", "mylist-512", new Buffer(Array(512).join("-"))]
 });
 tests.push({
-    descr: "LRANGE 0 99, 8 bytes",
+    descr: "LRANGE 10 elements, 8 bytes",
+    command: ["LRANGE", "mylist-8", "0", "9"]
+});
+tests.push({
+    descr: "LRANGE 100 elements, 8 bytes",
     command: ["LRANGE", "mylist-8", "0", "99"]
 });
 tests.push({
-    descr: "LRANGE 0 99, 64 bytes",
+    descr: "LRANGE 100 elements, 64 bytes",
     command: ["LRANGE", "mylist-64", "0", "99"]
 });
 tests.push({
-    descr: "LRANGE 0 99, 512 bytes",
+    descr: "LRANGE 100 elements, 512 bytes",
     command: ["LRANGE", "mylist-512", "0", "99"]
 });
 
