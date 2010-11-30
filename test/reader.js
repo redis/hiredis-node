@@ -2,6 +2,14 @@ var assert = require("assert"),
     spawn = require('child_process').spawn,
     hiredis = require("../build/default/hiredis");
 
+/* Monkey-patch Buffer.isBuffer on 0.3.1 */
+if (process.versions.node == "0.3.1") {
+    var SlowBuffer = process.binding('buffer').SlowBuffer;
+    Buffer.isBuffer = function isBuffer(b) {
+        return b instanceof Buffer || b instanceof SlowBuffer;
+    };
+}
+
 exports.testCreateReader = function() {
     var reader = new hiredis.Reader();
     assert.isNotNull(reader);
