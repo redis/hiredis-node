@@ -13,6 +13,14 @@ exports.testStatusReply = function() {
     assert.equal("OK", reader.get());
 }
 
+exports.testStatusReplyAsBuffer = function() {
+    var reader = new hiredis.Reader({ return_buffers: true });
+    reader.feed("+OK\r\n");
+    var reply = reader.get();
+    assert.ok(Buffer.isBuffer(reply));
+    assert.equal("OK", reply.toString());
+}
+
 exports.testIntegerReply = function() {
     var reader = new hiredis.Reader();
     reader.feed(":1\r\n");
@@ -21,6 +29,14 @@ exports.testIntegerReply = function() {
 
 exports.testErrorReply = function() {
     var reader = new hiredis.Reader();
+    reader.feed("-ERR foo\r\n");
+    var reply = reader.get();
+    assert.equal(Error, reply.constructor);
+    assert.equal("ERR foo", reply.message);
+}
+
+exports.testErrorReplyWithReturnBuffers = function() {
+    var reader = new hiredis.Reader({ return_buffers: true });
     reader.feed("-ERR foo\r\n");
     var reply = reader.get();
     assert.equal(Error, reply.constructor);
@@ -43,6 +59,14 @@ exports.testBulkReply = function() {
     var reader = new hiredis.Reader();
     reader.feed("$3\r\nfoo\r\n");
     assert.equal("foo", reader.get());
+}
+
+exports.testBulkReplyAsBuffer = function() {
+    var reader = new hiredis.Reader({ return_buffers: true });
+    reader.feed("$3\r\nfoo\r\n");
+    var reply = reader.get();
+    assert.ok(Buffer.isBuffer(reply));
+    assert.equal("foo", reply.toString());
 }
 
 exports.testBulkReplyWithEncoding = function() {

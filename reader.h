@@ -20,6 +20,10 @@ public:
     void popPersistentPointer();
     void clearPersistentPointers();
 
+    /* Determines whether to return strings or buffers for single line and bulk
+     * replies. This defaults to false, so strings are returned by default. */
+    bool return_buffers;
+
 private:
     void *reader;
 

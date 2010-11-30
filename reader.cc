@@ -2,6 +2,7 @@
 #include <node.h>
 #include <node_buffer.h>
 #include <node_version.h>
+#include <string.h>
 #include <hiredis/hiredis.h>
 #include "reader.h"
 
@@ -63,7 +64,20 @@ static void *createArray(const redisReadTask *task, int size) {
 }
 
 static void *createString(const redisReadTask *task, char *str, size_t len) {
-    Local<Value> v = String::New(str,len);
+    Local<Value> v;
+    Reader *r = reinterpret_cast<Reader*>(task->privdata);
+    if (r->return_buffers) {
+#if NODE_VERSION_AT_LEAST(0,3,0)
+        Buffer *b = Buffer::New(str,len);
+#else
+        Buffer *b = Buffer::New(len);
+        memcpy(b->data(),str,len);
+#endif
+        v = Local<Value>::New(b->handle_);
+    } else {
+        v = String::New(str,len);
+    }
+
     if (task->type == REDIS_REPLY_ERROR)
         v = Exception::Error(v->ToString());
     return tryParentize(task,v);
@@ -98,6 +112,7 @@ Reader::Reader() {
 
     pval[0] = pval[1] = NULL;
     pidx = 0;
+    return_buffers = false;
 }
 
 Reader::~Reader() {
@@ -131,6 +146,13 @@ Handle<Value> Reader::New(const Arguments& args) {
     HandleScope scope;
 
     Reader *r = new Reader();
+    if (args.Length() > 0 && args[0]->IsObject()) {
+        Local<Value> buffers = args[0]->ToObject()->Get(String::New("return_buffers"));
+        if (buffers->IsBoolean()) {
+            r->return_buffers = buffers->ToBoolean()->Value();
+        }
+    }
+
     r->Wrap(args.This());
     return args.This();
 }
