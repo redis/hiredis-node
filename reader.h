@@ -16,9 +16,20 @@ public:
     static Handle<Value> Feed(const Arguments &args);
     static Handle<Value> Get(const Arguments &args);
 
-    void pushPersistentPointer(Persistent<Value>*);
-    void popPersistentPointer();
-    void clearPersistentPointers();
+    /* Objects created by the reply object functions need to get back to the
+     * reader when the reply is requested via Reader::Get(). Keep temporary
+     * objects in this handle. Use an array of handles because replies may
+     * include nested multi bulks and child-elements need to be added to the
+     * right respective parent. handle[0] will be unused, so the real index of
+     * an object in this array can be returned from the reply object functions.
+     * The returned value needs to be non-zero to distinguish complete replies
+     * from incomplete replies. */
+    Local<Value> handle[3];
+
+    /* To keep references to objects when Reader::Get couldn't return a full reply,
+     * store persistent handles to these objects so they can be recovered
+     * as local handles in subsequent calls. */
+    Persistent<Value> persistent_handle[3];
 
     /* Determines whether to return strings or buffers for single line and bulk
      * replies. This defaults to false, so strings are returned by default. */
@@ -26,13 +37,6 @@ public:
 
 private:
     void *reader;
-
-    /* For nested multi bulks, we need to emit persistent value pointers for
-     * nested arrays, that can be passed as parent for underlying elements.
-     * These pointers need to be cleaned up when they are no longer needed, so
-     * keep a reference here. */
-    Persistent<Value>* pval[2];
-    int pidx;
 
 };
 

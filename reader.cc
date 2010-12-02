@@ -8,59 +8,38 @@
 
 using namespace hiredis;
 
-static inline Persistent<Value>* val_persist(const Local<Value> &v) {
-  Persistent<Value> *val = new Persistent<Value>();
-  *val = Persistent<Value>::New(v);
-  return val;
-}
-
-static inline Persistent<Value>* val_unwrap(void *data) {
-  return reinterpret_cast<Persistent<Value>*>(data);
-}
-
-static Persistent<Value> *tryParentize(const redisReadTask *task, const Local<Value> &v) {
-    Persistent<Value> *_v;
+static void *tryParentize(const redisReadTask *task, const Local<Value> &v) {
     Reader *r = reinterpret_cast<Reader*>(task->privdata);
+    size_t pidx;
 
     if (task->parent != NULL) {
-        Persistent<Value> *_p = val_unwrap(task->parent->obj);
-        assert((*_p)->IsArray());
+        pidx = (size_t)task->parent->obj;
+        assert(pidx > 0 && pidx < 3);
 
-        /* We know it is an array, so we can safely cast it */
-        Local<Array> parent = Local<Array>::Cast((*_p)->ToObject());
+        /* When there is a parent, it should be an array. */
+        assert(r->handle[pidx]->IsArray());
+        Local<Array> parent = Local<Array>::Cast(r->handle[pidx]->ToObject());
         parent->Set(task->idx,v);
 
-        /* When this is the last element of a nested array, the persistent
-         * handle to it should be removed because it is no longer needed. */
-        if (task->idx == task->parent->elements-1) {
-            r->popPersistentPointer();
+        /* Store the handle when this is an inner array. Otherwise, hiredis
+         * doesn't care about the return value as long as the value is set in
+         * its parent array. */
+        if (v->IsArray()) {
+            r->handle[pidx+1] = v;
+            return (void*)(pidx+1);
+        } else {
+            return (void*)0;
         }
-
-        return NULL;
+    } else {
+        /* There is no parent, so this value is the root object. */
+        r->handle[1] = v;
+        return (void*)1;
     }
-
-    _v = val_persist(v);
-    r->pushPersistentPointer(_v);
-    return _v;
 }
 
 static void *createArray(const redisReadTask *task, int size) {
     Local<Value> v(Array::New(size));
-    Persistent<Value> *_v = tryParentize(task,v);
-    Reader *r = reinterpret_cast<Reader*>(task->privdata);
-
-    /* When this is a nested array, wrap child array in a persistent handle so
-     * we can return it to hiredis so it can be passed as parent for the
-     * elements that it contains. */
-    if (_v == NULL && size > 0) {
-        _v = val_persist(v);
-
-        /* This will bail on nested multi bulk replies with depth > 1, but because
-         * hiredis doesn't support such nesting this we'll never get here. */
-        r->pushPersistentPointer(_v);
-    }
-
-    return _v;
+    return tryParentize(task,v);
 }
 
 static void *createString(const redisReadTask *task, char *str, size_t len) {
@@ -110,36 +89,11 @@ Reader::Reader() {
     assert(redisReplyReaderSetReplyObjectFunctions(reader, &v8ReplyFunctions) == REDIS_OK);
     assert(redisReplyReaderSetPrivdata(reader, this) == REDIS_OK);
 
-    pval[0] = pval[1] = NULL;
-    pidx = 0;
     return_buffers = false;
 }
 
 Reader::~Reader() {
     redisReplyReaderFree(reader);
-}
-
-void Reader::pushPersistentPointer(Persistent<Value> *v) {
-    assert(pidx < 2);
-    pval[pidx++] = v;
-}
-
-void Reader::popPersistentPointer(void) {
-    /* Don't pop the root object (at index 0) because it is the reply and
-     * it needs to be tested for equality in Reader::Get. */
-    if (pidx > 1) {
-        pval[--pidx]->Dispose();
-        delete pval[pidx];
-        pval[pidx] = NULL;
-    }
-}
-
-void Reader::clearPersistentPointers(void) {
-    while(pidx > 0) {
-        pval[--pidx]->Dispose();
-        delete pval[pidx];
-        pval[pidx] = NULL;
-    }
 }
 
 Handle<Value> Reader::New(const Arguments& args) {
@@ -205,26 +159,41 @@ Handle<Value> Reader::Feed(const Arguments &args) {
 Handle<Value> Reader::Get(const Arguments &args) {
     HandleScope scope;
     Reader *r = ObjectWrap::Unwrap<Reader>(args.This());
-    void *_wrapped;
-    Persistent<Value> *_reply;
+    int i, index;
     Local<Value> reply;
 
-    if (redisReplyReaderGetReply(r->reader,&_wrapped) == REDIS_OK) {
-        if (_wrapped == NULL) {
-            /* Needs more data */
+    /* Copy existing persistent handles to local scope. */
+    for (i = 1; i < 3; i++) {
+        if (!r->persistent_handle[i].IsEmpty()) {
+            r->handle[i] = Local<Value>::New(r->persistent_handle[i]);
+            r->persistent_handle[i].Dispose();
+            r->persistent_handle[i].Clear();
+        } else {
+            break;
+        }
+    }
+
+    if (redisReplyReaderGetReply(r->reader,(void**)&index) == REDIS_OK) {
+        if (index == 0) {
+            /* Needs more data, persist local handles. */
+            for (i = 1; i < 3; i++) {
+                if (!r->handle[i].IsEmpty()) {
+                    r->persistent_handle[i] = Persistent<Value>::New(r->handle[i]);
+                } else {
+                    break;
+                }
+            }
             return Undefined();
         } else {
-            assert(_wrapped == r->pval[0]);
-            _reply = val_unwrap(_wrapped);
+            /* Complete replies should always have a root object at index 1. */
+            assert(index == 1);
+            reply = r->handle[index];
         }
     } else {
-        r->clearPersistentPointers();
         char *error = redisReplyReaderGetError(r->reader);
         return ThrowException(Exception::Error(String::New(error)));
     }
 
-    reply = Local<Value>::New(*_reply);
-    r->clearPersistentPointers();
-    return reply;
+    return scope.Close(reply);
 }
 
