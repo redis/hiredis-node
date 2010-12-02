@@ -4,6 +4,8 @@ def set_options(opt):
 def configure(conf):
   conf.check_tool("compiler_cxx")
   conf.check_tool("node_addon")
+  conf.env.append_unique('CXXFLAGS', '-O3')
+  conf.env.append_unique('CXXFLAGS', '-Wall')
   conf.env['LIBPATH_HIREDIS']  = '../deps/hiredis'
   conf.env['LIB_HIREDIS']      = 'hiredis'
 
