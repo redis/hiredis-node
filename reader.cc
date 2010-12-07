@@ -73,25 +73,27 @@ static redisReplyObjectFunctions v8ReplyFunctions = {
     freeObject
 };
 
-Reader::Reader() {
+Reader::Reader(bool return_buffers) :
+    return_buffers(return_buffers)
+{
     reader = redisReplyReaderCreate();
     assert(redisReplyReaderSetReplyObjectFunctions(reader, &v8ReplyFunctions) == REDIS_OK);
     assert(redisReplyReaderSetPrivdata(reader, this) == REDIS_OK);
 
-    return_buffers = false;
-
 #if NODE_VERSION_AT_LEAST(0,3,0)
-    Local<Object> global = Context::GetCurrent()->Global();
-    Local<Value> bv = global->Get(String::NewSymbol("Buffer"));
-    assert(bv->IsFunction());
-    Local<Function> bf = Local<Function>::Cast(bv);
-    buffer_fn = Persistent<Function>::New(bf);
+    if (return_buffers) {
+        Local<Object> global = Context::GetCurrent()->Global();
+        Local<Value> bv = global->Get(String::NewSymbol("Buffer"));
+        assert(bv->IsFunction());
+        Local<Function> bf = Local<Function>::Cast(bv);
+        buffer_fn = Persistent<Function>::New(bf);
 
-    buffer_pool_length = 8*1024; /* Same as node */
-    buffer_pool_offset = 0;
+        buffer_pool_length = 8*1024; /* Same as node */
+        buffer_pool_offset = 0;
 
-    Buffer *b = Buffer::New(buffer_pool_length);
-    buffer_pool = Persistent<Object>::New(b->handle_);
+        Buffer *b = Buffer::New(buffer_pool_length);
+        buffer_pool = Persistent<Object>::New(b->handle_);
+    }
 #endif
 }
 
@@ -145,17 +147,17 @@ Local<Value> Reader::createBufferFromPool(char *str, size_t len) {
 
 Handle<Value> Reader::New(const Arguments& args) {
     HandleScope scope;
+    bool return_buffers = false;
 
-    Reader *r = new Reader();
     if (args.Length() > 0 && args[0]->IsObject()) {
-        Local<Value> buffers = args[0]->ToObject()->Get(String::New("return_buffers"));
-        if (buffers->IsBoolean()) {
-            r->return_buffers = buffers->ToBoolean()->Value();
-        }
+        Local<Value> bv = args[0]->ToObject()->Get(String::New("return_buffers"));
+        if (bv->IsBoolean())
+            return_buffers = bv->ToBoolean()->Value();
     }
 
+    Reader *r = new Reader(return_buffers);
     r->Wrap(args.This());
-    return args.This();
+    return scope.Close(args.This());
 }
 
 void Reader::Initialize(Handle<Object> target) {

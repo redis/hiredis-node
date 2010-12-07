@@ -8,7 +8,7 @@ using namespace node;
 
 class Reader : ObjectWrap {
 public:
-    Reader();
+    Reader(bool);
     ~Reader();
 
     static void Initialize(Handle<Object> target);
