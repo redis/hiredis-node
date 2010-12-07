@@ -43,19 +43,8 @@ static void *createArray(const redisReadTask *task, int size) {
 }
 
 static void *createString(const redisReadTask *task, char *str, size_t len) {
-    Local<Value> v;
     Reader *r = reinterpret_cast<Reader*>(task->privdata);
-    if (r->return_buffers) {
-#if NODE_VERSION_AT_LEAST(0,3,0)
-        Buffer *b = Buffer::New(str,len);
-#else
-        Buffer *b = Buffer::New(len);
-        memcpy(b->data(),str,len);
-#endif
-        v = Local<Value>::New(b->handle_);
-    } else {
-        v = String::New(str,len);
-    }
+    Local<Value> v(r->createString(str,len));
 
     if (task->type == REDIS_REPLY_ERROR)
         v = Exception::Error(v->ToString());
@@ -94,6 +83,22 @@ Reader::Reader() {
 
 Reader::~Reader() {
     redisReplyReaderFree(reader);
+}
+
+/* Don't use a HandleScope here, so the objects are created within the scope of
+ * the caller (Reader::Get) and we don't have to the pay the overhead. */
+Local<Value> Reader::createString(char *str, size_t len) {
+    if (return_buffers) {
+#if NODE_VERSION_AT_LEAST(0,3,0)
+        Buffer *b = Buffer::New(str,len);
+#else
+        Buffer *b = Buffer::New(len);
+        memcpy(b->data(),str,len);
+#endif
+        return Local<Value>::New(b->handle_);
+    } else {
+        return String::New(str,len);
+    }
 }
 
 Handle<Value> Reader::New(const Arguments& args) {
