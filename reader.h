@@ -41,6 +41,13 @@ private:
      * replies. This defaults to false, so strings are returned by default. */
     bool return_buffers;
 
+    /* For node 0.3, use a buffer pool like the fast buffers. */
+    Local<Value> createBufferFromPool(char *str, size_t len);
+    Persistent<Function> buffer_fn;
+    Persistent<Object> buffer_pool;
+    size_t buffer_pool_length;
+    size_t buffer_pool_offset;
+
 };
 
 };

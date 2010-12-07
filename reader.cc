@@ -79,6 +79,20 @@ Reader::Reader() {
     assert(redisReplyReaderSetPrivdata(reader, this) == REDIS_OK);
 
     return_buffers = false;
+
+#if NODE_VERSION_AT_LEAST(0,3,0)
+    Local<Object> global = Context::GetCurrent()->Global();
+    Local<Value> bv = global->Get(String::NewSymbol("Buffer"));
+    assert(bv->IsFunction());
+    Local<Function> bf = Local<Function>::Cast(bv);
+    buffer_fn = Persistent<Function>::New(bf);
+
+    buffer_pool_length = 8*1024; /* Same as node */
+    buffer_pool_offset = 0;
+
+    Buffer *b = Buffer::New(buffer_pool_length);
+    buffer_pool = Persistent<Object>::New(b->handle_);
+#endif
 }
 
 Reader::~Reader() {
@@ -90,15 +104,43 @@ Reader::~Reader() {
 Local<Value> Reader::createString(char *str, size_t len) {
     if (return_buffers) {
 #if NODE_VERSION_AT_LEAST(0,3,0)
-        Buffer *b = Buffer::New(str,len);
+        if (len > buffer_pool_length) {
+            Buffer *b = Buffer::New(str,len);
+            return Local<Value>::New(b->handle_);
+        } else {
+            return createBufferFromPool(str,len);
+        }
 #else
         Buffer *b = Buffer::New(len);
         memcpy(b->data(),str,len);
-#endif
         return Local<Value>::New(b->handle_);
+#endif
     } else {
         return String::New(str,len);
     }
+}
+
+Local<Value> Reader::createBufferFromPool(char *str, size_t len) {
+    HandleScope scope;
+    Local<Value> argv[3];
+    Local<Object> instance;
+
+    assert(len <= buffer_pool_length);
+    if (buffer_pool_length - buffer_pool_offset < len) {
+        Buffer *b = Buffer::New(buffer_pool_length);
+        buffer_pool.Dispose();
+        buffer_pool = Persistent<Object>::New(b->handle_);
+        buffer_pool_offset = 0;
+    }
+
+    memcpy(Buffer::Data(buffer_pool)+buffer_pool_offset,str,len);
+
+    argv[0] = Local<Value>::New(buffer_pool);
+    argv[1] = Integer::New(len);
+    argv[2] = Integer::New(buffer_pool_offset);
+    instance = buffer_fn->NewInstance(3,argv);
+    buffer_pool_offset += len;
+    return scope.Close(instance);
 }
 
 Handle<Value> Reader::New(const Arguments& args) {
