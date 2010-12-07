@@ -1,7 +1,6 @@
 #include <v8.h>
 #include <node.h>
 #include <node_buffer.h>
-#include <node_version.h>
 #include <string.h>
 #include <hiredis/hiredis.h>
 #include "reader.h"
@@ -122,6 +121,7 @@ Local<Value> Reader::createString(char *str, size_t len) {
     }
 }
 
+#if NODE_VERSION_AT_LEAST(0,3,0)
 Local<Value> Reader::createBufferFromPool(char *str, size_t len) {
     HandleScope scope;
     Local<Value> argv[3];
@@ -144,6 +144,7 @@ Local<Value> Reader::createBufferFromPool(char *str, size_t len) {
     buffer_pool_offset += len;
     return scope.Close(instance);
 }
+#endif
 
 Handle<Value> Reader::New(const Arguments& args) {
     HandleScope scope;
