@@ -24,13 +24,10 @@ public:
      * right respective parent. handle[0] will be unused, so the real index of
      * an object in this array can be returned from the reply object functions.
      * The returned value needs to be non-zero to distinguish complete replies
-     * from incomplete replies. */
-    Local<Value> handle[3];
-
-    /* To keep references to objects when Reader::Get couldn't return a full reply,
-     * store persistent handles to these objects so they can be recovered
-     * as local handles in subsequent calls. */
-    Persistent<Value> persistent_handle[3];
+     * from incomplete replies. These are persistent handles because
+     * Reader::Get might not return a full reply and the objects need to be
+     * kept around for subsequent calls. */
+    Persistent<Value> handle[3];
 
     /* Helper function to create string/buffer objects. */
     Local<Value> createString(char *str, size_t len);

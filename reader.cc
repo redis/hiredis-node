@@ -9,7 +9,7 @@ using namespace hiredis;
 
 static void *tryParentize(const redisReadTask *task, const Local<Value> &v) {
     Reader *r = reinterpret_cast<Reader*>(task->privdata);
-    size_t pidx;
+    size_t pidx, vidx;
 
     if (task->parent != NULL) {
         pidx = (size_t)task->parent->obj;
@@ -23,15 +23,18 @@ static void *tryParentize(const redisReadTask *task, const Local<Value> &v) {
         /* Store the handle when this is an inner array. Otherwise, hiredis
          * doesn't care about the return value as long as the value is set in
          * its parent array. */
+        vidx = pidx+1;
         if (v->IsArray()) {
-            r->handle[pidx+1] = v;
-            return (void*)(pidx+1);
+            r->handle[vidx].Dispose();
+            r->handle[vidx].Clear();
+            r->handle[vidx] = Persistent<Value>::New(v);
+            return (void*)vidx;
         } else {
             return (void*)0;
         }
     } else {
         /* There is no parent, so this value is the root object. */
-        r->handle[1] = v;
+        r->handle[1] = Persistent<Value>::New(v);
         return (void*)1;
     }
 }
@@ -209,36 +212,23 @@ Handle<Value> Reader::Feed(const Arguments &args) {
 Handle<Value> Reader::Get(const Arguments &args) {
     HandleScope scope;
     Reader *r = ObjectWrap::Unwrap<Reader>(args.This());
-    int i;
     void *index = NULL;
     Local<Value> reply;
-
-    /* Copy existing persistent handles to local scope. */
-    for (i = 1; i < 3; i++) {
-        if (!r->persistent_handle[i].IsEmpty()) {
-            r->handle[i] = Local<Value>::New(r->persistent_handle[i]);
-            r->persistent_handle[i].Dispose();
-            r->persistent_handle[i].Clear();
-        } else {
-            break;
-        }
-    }
+    int i;
 
     if (redisReplyReaderGetReply(r->reader,&index) == REDIS_OK) {
         if (index == 0) {
-            /* Needs more data, persist local handles. */
-            for (i = 1; i < 3; i++) {
-                if (!r->handle[i].IsEmpty()) {
-                    r->persistent_handle[i] = Persistent<Value>::New(r->handle[i]);
-                } else {
-                    break;
-                }
-            }
             return Undefined();
         } else {
             /* Complete replies should always have a root object at index 1. */
             assert((unsigned size_t)index == 1);
-            reply = r->handle[1];
+            reply = Local<Value>::New(r->handle[1]);
+
+            /* Dispose and clear used handles. */
+            for (i = 1; i < 3; i++) {
+                r->handle[i].Dispose();
+                r->handle[i].Clear();
+            }
         }
     } else {
         char *error = redisReplyReaderGetError(r->reader);
