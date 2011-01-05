@@ -209,7 +209,8 @@ Handle<Value> Reader::Feed(const Arguments &args) {
 Handle<Value> Reader::Get(const Arguments &args) {
     HandleScope scope;
     Reader *r = ObjectWrap::Unwrap<Reader>(args.This());
-    int i, index;
+    int i;
+    void *index = NULL;
     Local<Value> reply;
 
     /* Copy existing persistent handles to local scope. */
@@ -223,7 +224,7 @@ Handle<Value> Reader::Get(const Arguments &args) {
         }
     }
 
-    if (redisReplyReaderGetReply(r->reader,(void**)&index) == REDIS_OK) {
+    if (redisReplyReaderGetReply(r->reader,&index) == REDIS_OK) {
         if (index == 0) {
             /* Needs more data, persist local handles. */
             for (i = 1; i < 3; i++) {
@@ -236,8 +237,8 @@ Handle<Value> Reader::Get(const Arguments &args) {
             return Undefined();
         } else {
             /* Complete replies should always have a root object at index 1. */
-            assert(index == 1);
-            reply = r->handle[index];
+            assert((unsigned size_t)index == 1);
+            reply = r->handle[1];
         }
     } else {
         char *error = redisReplyReaderGetError(r->reader);
