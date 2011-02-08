@@ -7,14 +7,12 @@ def set_options(opt):
 def configure(conf):
   # To build hiredis
   conf.check_tool("compiler_cc")
-  conf.env.append_unique('CCFLAGS', '-O3')
-  conf.env.append_unique('CCFLAGS', '-Wall')
+  conf.env.append_unique('CCFLAGS', ['-Wall', '-fPIC', '-O3'])
 
   # To build the ext
   conf.check_tool("compiler_cxx")
   conf.check_tool("node_addon")
-  conf.env.append_unique('CXXFLAGS', '-O3')
-  conf.env.append_unique('CXXFLAGS', '-Wall')
+  conf.env.append_unique('CXXFLAGS', ['-Wall', '-O3'])
   conf.env['LIBPATH_HIREDIS'] = 'default'
   conf.env['LIB_HIREDIS'] = 'hiredis'
 
