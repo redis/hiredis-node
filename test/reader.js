@@ -1,6 +1,6 @@
 var assert = require("assert"),
     spawn = require('child_process').spawn,
-    hiredis = require("../build/default/hiredis");
+    hiredis = require("../hiredis");
 
 /* Monkey-patch Buffer.isBuffer on 0.3.1 */
 if (process.versions.node == "0.3.1") {
