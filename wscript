@@ -1,3 +1,5 @@
+import cc
+
 def set_options(opt):
   opt.tool_options("compiler_cc")
   opt.tool_options("compiler_cxx")
