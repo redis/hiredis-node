@@ -9,7 +9,7 @@
     "lib": "."
   },
   "scripts": {
-    "preinstall": "cd deps/hiredis && make static && cd ../.. && node-waf configure build",
+    "preinstall": "node-waf configure build",
     "test": "expresso"
   },
   "engines": {
