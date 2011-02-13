@@ -3,10 +3,9 @@ var hiredis = require("./build/default/hiredis"),
 
 exports.Reader = hiredis.Reader;
 exports.createConnection = function(port, host) {
-    var s = new net.Stream();
+    var s = net.createConnection(port || 6379, host);
     var r = new hiredis.Reader();
     var _write = s.write;
-    s.connect(port || 6379, host);
 
     s.write = function() {
         var i, args = arguments;
