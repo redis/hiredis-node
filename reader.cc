@@ -54,7 +54,7 @@ static void *createString(const redisReadTask *task, char *str, size_t len) {
 }
 
 static void *createInteger(const redisReadTask *task, long long value) {
-    Local<Value> v(Integer::New(value));
+    Local<Value> v(Number::New(value));
     return tryParentize(task,v);
 }
 

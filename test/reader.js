@@ -35,6 +35,13 @@ exports.testIntegerReply = function() {
     assert.equal(1, reader.get());
 }
 
+// This test fails since v8 doesn't to 64-bit integers...
+exports.testLargeIntegerReply = function() {
+    var reader = new hiredis.Reader();
+    reader.feed(":9223372036854775807\r\n");
+    assert.equal("9223372036854775807", String(reader.get()));
+}
+
 exports.testErrorReply = function() {
     var reader = new hiredis.Reader();
     reader.feed("-ERR foo\r\n");
