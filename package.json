@@ -10,7 +10,7 @@
   },
   "scripts": {
     "preinstall": "node-waf configure build",
-    "test": "expresso"
+    "test": "node test/reader.js"
   },
   "engines": {
     "node": "*"
