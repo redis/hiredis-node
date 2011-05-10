@@ -1,6 +1,7 @@
 #include <v8.h>
 #include <node.h>
 #include <node_version.h>
+#include <hiredis/hiredis.h>
 
 namespace hiredis {
 
@@ -33,7 +34,7 @@ public:
     Local<Value> createString(char *str, size_t len);
 
 private:
-    void *reader;
+    redisReader *reader;
 
     /* Determines whether to return strings or buffers for single line and bulk
      * replies. This defaults to false, so strings are returned by default. */

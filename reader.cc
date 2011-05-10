@@ -2,7 +2,7 @@
 #include <node.h>
 #include <node_buffer.h>
 #include <string.h>
-#include <hiredis/hiredis.h>
+#include <assert.h>
 #include "reader.h"
 
 using namespace hiredis;
@@ -30,7 +30,9 @@ static void *tryParentize(const redisReadTask *task, const Local<Value> &v) {
             r->handle[vidx] = Persistent<Value>::New(v);
             return (void*)vidx;
         } else {
-            return (void*)0;
+            /* Return value doesn't matter for inner value, as long as it is
+             * not NULL (which means OOM for hiredis). */
+            return (void*)0xcafef00d;
         }
     } else {
         /* There is no parent, so this value is the root object. */
@@ -63,24 +65,20 @@ static void *createNil(const redisReadTask *task) {
     return tryParentize(task,v);
 }
 
-static void freeObject(void *obj) {
-    /* Handle disposing the object(s) in Reader::Get. */
-}
-
 static redisReplyObjectFunctions v8ReplyFunctions = {
     createString,
     createArray,
     createInteger,
     createNil,
-    freeObject
+    NULL /* No free function: cleanup is done in Reader::Get. */
 };
 
 Reader::Reader(bool return_buffers) :
     return_buffers(return_buffers)
 {
-    reader = redisReplyReaderCreate();
-    assert(redisReplyReaderSetReplyObjectFunctions(reader, &v8ReplyFunctions) == REDIS_OK);
-    assert(redisReplyReaderSetPrivdata(reader, this) == REDIS_OK);
+    reader = redisReaderCreate();
+    reader->fn = &v8ReplyFunctions;
+    reader->privdata = this;
 
 #if NODE_VERSION_AT_LEAST(0,3,0)
     if (return_buffers) {
@@ -100,7 +98,7 @@ Reader::Reader(bool return_buffers) :
 }
 
 Reader::~Reader() {
-    redisReplyReaderFree(reader);
+    redisReaderFree(reader);
 }
 
 /* Don't use a HandleScope here, so the objects are created within the scope of
@@ -196,7 +194,8 @@ Handle<Value> Reader::Feed(const Arguments &args) {
             length = buffer->length();
 #endif
 
-            redisReplyReaderFeed(r->reader, data, length);
+            /* Can't handle OOM for now. */
+            assert(redisReaderFeed(r->reader, data, length) == REDIS_OK);
         } else if (args[0]->IsString()) {
             String::Utf8Value str(args[0]->ToString());
             redisReplyReaderFeed(r->reader, *str, str.length());
@@ -216,7 +215,7 @@ Handle<Value> Reader::Get(const Arguments &args) {
     Local<Value> reply;
     int i;
 
-    if (redisReplyReaderGetReply(r->reader,&index) == REDIS_OK) {
+    if (redisReaderGetReply(r->reader,&index) == REDIS_OK) {
         if (index == 0) {
             return Undefined();
         } else {
@@ -231,8 +230,7 @@ Handle<Value> Reader::Get(const Arguments &args) {
             }
         }
     } else {
-        char *error = redisReplyReaderGetError(r->reader);
-        return ThrowException(Exception::Error(String::New(error)));
+        return ThrowException(Exception::Error(String::New(r->reader->errstr)));
     }
 
     return scope.Close(reply);
