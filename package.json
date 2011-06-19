@@ -9,7 +9,7 @@
     "lib": "."
   },
   "scripts": {
-    "preinstall": "node-waf configure build",
+    "preinstall": "make",
     "test": "node test/reader.js"
   },
   "engines": {

@@ -1,9 +1,16 @@
+all:
+	cd deps/hiredis && make static
+	node-waf configure build
+
+clean:
+	cd deps/hiredis && make clean
+	rm -rf build
+
 temp:
 	rm -rf tmp/hiredis
 	mkdir -p tmp/hiredis
-	cp -r README *.{cc,h,js*} wscript deps test tmp/hiredis
+	cp -r README *.{cc,h,js*} wscript Makefile deps test tmp/hiredis
 	cd tmp/hiredis && rm -rf deps/*/.git* deps/*/*.o deps/hiredis/libhiredis.*
 
 package: temp
 	cd tmp && tar -czvf hiredis.tgz hiredis
-
