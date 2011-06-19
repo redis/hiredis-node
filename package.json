@@ -9,7 +9,7 @@
     "lib": "."
   },
   "scripts": {
-    "preinstall": "make",
+    "preinstall": "make || gmake",
     "test": "node test/reader.js"
   },
   "engines": {

@@ -1,9 +1,9 @@
 all:
-	cd deps/hiredis && make static
+	cd deps/hiredis && $(MAKE) static
 	node-waf configure build
 
 clean:
-	cd deps/hiredis && make clean
+	cd deps/hiredis && $(MAKE) clean
 	rm -rf build
 
 temp:
