@@ -1,7 +1,7 @@
 {
   "name": "hiredis",
   "description": "Wrapper for reply processing code in hiredis",
-  "version": "0.1.12",
+  "version": "0.1.13",
   "homepage": "http://github.com/pietern/hiredis-node",
   "author": "Pieter Noordhuis <pcnoordhuis@gmail.com>",
   "main": "hiredis",
