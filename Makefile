@@ -17,3 +17,6 @@ temp:
 
 package: temp
 	cd tmp && tar -czvf hiredis.tgz hiredis
+
+check:
+	npm test
