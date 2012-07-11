@@ -9,6 +9,5 @@ extern "C" {
         HandleScope scope;
         hiredis::Reader::Initialize(target);
     }
-    NODE_MODULE(hiredis,init);
+    NODE_MODULE(nodehiredis, init);
 }
-
