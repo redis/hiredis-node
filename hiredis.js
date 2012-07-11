@@ -1,10 +1,6 @@
 var hiredis, net = require("net");
 
-try {
-  hiredis = require('./build/Release/hiredis');
-} catch (e) {
-  hiredis = require('./build/default/hiredis');
-}
+hiredis = require('bindings')('nodehiredis.node');
 
 exports.Reader = hiredis.Reader;
 exports.createConnection = function(port, host) {
