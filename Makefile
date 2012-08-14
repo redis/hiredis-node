@@ -1,15 +1,13 @@
 all:
-	cd deps/hiredis && $(MAKE) static
-	node-waf configure build
+	node-gyp configure build
 
 clean:
-	cd deps/hiredis && $(MAKE) clean
-	rm -rf build
+	node-gyp clean
 
 temp:
 	rm -rf tmp/hiredis
 	mkdir -p tmp/hiredis
-	cp -r README *.{cc,h,js*} wscript Makefile deps test tmp/hiredis
+	cp -r README *.{cc,h,js*} binding.gyp wscript Makefile deps test tmp/hiredis
 	cd tmp/hiredis && rm -rf deps/*/.git* deps/*/*.o deps/hiredis/libhiredis.*
 
 package: temp

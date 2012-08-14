@@ -5,12 +5,11 @@
   "homepage": "http://github.com/pietern/hiredis-node",
   "author": "Pieter Noordhuis <pcnoordhuis@gmail.com>",
   "main": "hiredis",
-  "directories": {
-    "lib": "."
-  },
   "scripts": {
-    "preinstall": "make || gmake",
     "test": "node test/reader.js"
+  },
+  "dependencies": {
+    "bindings": "*"
   },
   "engines": {
     "node": "*"

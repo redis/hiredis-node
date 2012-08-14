@@ -220,7 +220,7 @@ Handle<Value> Reader::Get(const Arguments &args) {
             return Undefined();
         } else {
             /* Complete replies should always have a root object at index 1. */
-            assert((unsigned size_t)index == 1);
+            assert((size_t)index == 1);
             reply = Local<Value>::New(r->handle[1]);
 
             /* Dispose and clear used handles. */
