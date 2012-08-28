@@ -13,7 +13,7 @@ static void *tryParentize(const redisReadTask *task, const Local<Value> &v) {
 
     if (task->parent != NULL) {
         pidx = (size_t)task->parent->obj;
-        assert(pidx > 0 && pidx < 3);
+        assert(pidx > 0 && pidx < 9);
 
         /* When there is a parent, it should be an array. */
         assert(r->handle[pidx]->IsArray());

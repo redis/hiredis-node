@@ -119,6 +119,39 @@ test("NestedMultiBulkReply", function() {
     assert.deepEqual([["foo", "bar"], "qux"], reader.get());
 });
 
+test("DeeplyNestedMultiBulkReply", function() {
+    var i;
+    var reader = new hiredis.Reader();
+    var expected = 1;
+
+    for (i = 0; i < 8; i++) {
+      reader.feed("*1\r\n");
+      expected = [expected];
+    }
+
+    reader.feed(":1\r\n");
+
+    assert.deepEqual(reader.get(), expected);
+});
+
+test("TooDeeplyNestedMultiBulkReply", function() {
+    var i;
+    var reader = new hiredis.Reader();
+
+    for (i = 0; i < 9; i++) {
+      reader.feed("*1\r\n");
+    }
+
+    reader.feed(":1\r\n");
+
+    assert.throws(
+      function() {
+        reader.get();
+      },
+      /nested multi/
+    );
+});
+
 test("MultiBulkReplyWithNonStringValues", function() {
     var reader = new hiredis.Reader();
     reader.feed("*3\r\n:1\r\n+OK\r\n$-1\r\n");
