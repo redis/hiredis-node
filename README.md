@@ -1,14 +1,14 @@
 # hiredis-node
 
 Node extension that wraps [hiredis][hiredis].
-Because Node is already good at doing I/O, `hiredis-node` only provides
+Because Node is already good at doing I/O, hiredis-node only provides
 bindings to the protocol parser.
 The hiredis protocol parser is faster than JavaScript protocol parsers,
 but the speedup only becomes noticable for large replies.
 If you use Redis for simple SET/GET operations, there won't be a big
 benefit to using hiredis.
 If you use Redis for big SUNION/SINTER/LRANGE/ZRANGE operations, the
-benefit to using `hiredis-node` can be significant.
+benefit to using hiredis-node can be significant.
 
 [hiredis]: http://github.com/antirez/hiredis
 
@@ -24,8 +24,8 @@ npm install hiredis
 
 ## Usage
 
-`hiredis-node` works out of the box with Matt Ranney's [node_redis][`node_redis`].
-The latter has an optional dependency on `hiredis-node`, so maybe you're
+hiredis-node works out of the box with Matt Ranney's [node_redis][node_redis].
+The latter has an optional dependency on hiredis-node, so maybe you're
 already using it but just didn't know yet.
 
 Alternatively, you can use it directly:
