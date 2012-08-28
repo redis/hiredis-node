@@ -1,6 +1,9 @@
-all:
+all: deps/hiredis/README.md
 	cd deps/hiredis && $(MAKE) static
 	node-waf configure build
+
+deps/hiredis/README.md:
+	git submodule init && git submodule update
 
 clean:
 	cd deps/hiredis && $(MAKE) clean
@@ -14,3 +17,6 @@ temp:
 
 package: temp
 	cd tmp && tar -czvf hiredis.tgz hiredis
+
+check:
+	npm test
