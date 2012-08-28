@@ -26,7 +26,7 @@ npm install hiredis
 
 hiredis-node works out of the box with Matt Ranney's [node_redis][node_redis].
 The latter has an optional dependency on hiredis-node, so maybe you're
-already using it but just didn't know yet.
+already using it without knowing.
 
 Alternatively, you can use it directly:
 
