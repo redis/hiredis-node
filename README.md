@@ -24,7 +24,7 @@ npm install hiredis
 
 ## Usage
 
-`hiredis-node` works out of the box with Matt Ranney's `node_redis`.
+`hiredis-node` works out of the box with Matt Ranney's [node_redis][`node_redis`].
 The latter has an optional dependency on `hiredis-node`, so maybe you're
 already using it but just didn't know yet.
 
@@ -54,6 +54,8 @@ reader.feed("$5\r\nhello\r\n");
 // Reply comes out
 reader.get() // => <Buffer 68 65 6c 6c 6f>
 ```
+
+[node_redis]: http://github.com/mranney/node_redis
 
 ## License
 
