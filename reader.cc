@@ -80,7 +80,6 @@ Reader::Reader(bool return_buffers) :
     reader->fn = &v8ReplyFunctions;
     reader->privdata = this;
 
-#if NODE_VERSION_AT_LEAST(0,3,0)
     if (return_buffers) {
         Local<Object> global = Context::GetCurrent()->Global();
         Local<Value> bv = global->Get(String::NewSymbol("Buffer"));
@@ -94,7 +93,6 @@ Reader::Reader(bool return_buffers) :
         Buffer *b = Buffer::New(buffer_pool_length);
         buffer_pool = Persistent<Object>::New(b->handle_);
     }
-#endif
 }
 
 Reader::~Reader() {
@@ -105,24 +103,17 @@ Reader::~Reader() {
  * the caller (Reader::Get) and we don't have to the pay the overhead. */
 Local<Value> Reader::createString(char *str, size_t len) {
     if (return_buffers) {
-#if NODE_VERSION_AT_LEAST(0,3,0)
         if (len > buffer_pool_length) {
             Buffer *b = Buffer::New(str,len);
             return Local<Value>::New(b->handle_);
         } else {
             return createBufferFromPool(str,len);
         }
-#else
-        Buffer *b = Buffer::New(len);
-        memcpy(b->data(),str,len);
-        return Local<Value>::New(b->handle_);
-#endif
     } else {
         return String::New(str,len);
     }
 }
 
-#if NODE_VERSION_AT_LEAST(0,3,0)
 Local<Value> Reader::createBufferFromPool(char *str, size_t len) {
     HandleScope scope;
     Local<Value> argv[3];
@@ -145,7 +136,6 @@ Local<Value> Reader::createBufferFromPool(char *str, size_t len) {
     buffer_pool_offset += len;
     return scope.Close(instance);
 }
-#endif
 
 Handle<Value> Reader::New(const Arguments& args) {
     HandleScope scope;
@@ -185,14 +175,8 @@ Handle<Value> Reader::Feed(const Arguments &args) {
             char *data;
             size_t length;
 
-#if NODE_VERSION_AT_LEAST(0,3,0)
             data = Buffer::Data(buffer_object);
             length = Buffer::Length(buffer_object);
-#else
-            Buffer *buffer = ObjectWrap::Unwrap<Buffer>(buffer_object);
-            data = buffer->data();
-            length = buffer->length();
-#endif
 
             /* Can't handle OOM for now. */
             assert(redisReaderFeed(r->reader, data, length) == REDIS_OK);
@@ -235,4 +219,3 @@ Handle<Value> Reader::Get(const Arguments &args) {
 
     return scope.Close(reply);
 }
-

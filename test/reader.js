@@ -1,14 +1,6 @@
 var assert = require("assert"),
     hiredis = require("../hiredis");
 
-/* Monkey-patch Buffer.isBuffer on 0.3.1 */
-if (process.versions.node == "0.3.1") {
-    var SlowBuffer = process.binding('buffer').SlowBuffer;
-    Buffer.isBuffer = function isBuffer(b) {
-        return b instanceof Buffer || b instanceof SlowBuffer;
-    };
-}
-
 var passed = 0;
 var failed = 0;
 
