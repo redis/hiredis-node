@@ -1,3 +1,4 @@
 /build
 .lock-wscript
 tmp
+node_modules

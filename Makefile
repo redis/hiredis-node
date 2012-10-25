@@ -1,18 +1,16 @@
-all: deps/hiredis/README.md
-	cd deps/hiredis && $(MAKE) static
-	node-waf configure build
+all:
+	node-gyp configure build
 
 deps/hiredis/README.md:
 	git submodule init && git submodule update
 
 clean:
-	cd deps/hiredis && $(MAKE) clean
-	rm -rf build
+	node-gyp clean
 
 temp:
 	rm -rf tmp/hiredis
 	mkdir -p tmp/hiredis
-	cp -r README *.{cc,h,js*} wscript Makefile deps test tmp/hiredis
+	cp -r README *.{cc,h,js*} binding.gyp wscript Makefile deps test tmp/hiredis
 	cd tmp/hiredis && rm -rf deps/*/.git* deps/*/*.o deps/hiredis/libhiredis.*
 
 package: temp

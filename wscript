@@ -12,4 +12,4 @@ def build(bld):
   ext = bld.new_task_gen("cxx", "shlib", "node_addon", uselib="HIREDIS")
   ext.cxxflags = ["-I../deps", "-g", "-Wall"]
   ext.source = "hiredis.cc reader.cc"
-  ext.target = "hiredis"
+  ext.target = "nodehiredis"
