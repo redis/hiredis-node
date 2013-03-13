@@ -12,6 +12,6 @@
     "bindings": "*"
   },
   "engines": {
-    "node": "*"
+    "node": ">= 0.6.0"
   }
 }
