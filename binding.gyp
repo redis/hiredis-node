@@ -3,8 +3,8 @@
     {
       'target_name': 'hiredis',
       'sources': [
-          'hiredis.cc'
-        , 'reader.cc'
+          'src/hiredis.cc'
+        , 'src/reader.cc'
       ],
       'dependencies': [
         'deps/hiredis.gyp:hiredis'
