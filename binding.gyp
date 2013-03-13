@@ -12,14 +12,9 @@
       'defines': [
           '_GNU_SOURCE'
       ],
-      'conditions': [
-        ['OS=="mac"', {
-          'xcode_settings': {
-            'OTHER_CFLAGS': [
-              '-Wall', '-O3'
-            ]
-          }
-        }]
+      'cflags': [
+          '-Wall',
+          '-O3'
       ]
     }
   ]
