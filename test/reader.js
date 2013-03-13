@@ -195,3 +195,8 @@ test("Leaks", function(beforeExit) {
         assert.ok(done, "Leaks test should have completed");
     });
 });
+
+test("Summary", function () {
+    var exitCode = failed ? 1 : 0
+    process.exit(exitCode);
+});
