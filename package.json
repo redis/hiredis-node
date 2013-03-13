@@ -4,6 +4,13 @@
   "version": "0.1.15",
   "homepage": "http://github.com/pietern/hiredis-node",
   "author": "Pieter Noordhuis <pcnoordhuis@gmail.com>",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/pietern/hiredis-node.git"
+  },
+  "bugs": {
+    "url": "http://github.com/pietern/hiredis-node/issues"
+  },
   "main": "hiredis",
   "scripts": {
     "test": "node test/reader.js"
