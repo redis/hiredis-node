@@ -1,9 +1,6 @@
 all:
 	node-gyp configure build
 
-deps/hiredis/README.md:
-	git submodule init && git submodule update
-
 clean:
 	node-gyp clean
 
