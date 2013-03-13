@@ -12,7 +12,7 @@ benefit to using hiredis.
 If you use Redis for big SUNION/SINTER/LRANGE/ZRANGE operations, the
 benefit to using hiredis-node can be significant.
 
-[hiredis]: http://github.com/antirez/hiredis
+[hiredis]: http://github.com/redis/hiredis
 
 ## Install
 
