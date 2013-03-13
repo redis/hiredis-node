@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.org/pietern/hiredis-node.png?branch=master)](https://travis-ci.org/pietern/hiredis-node)
+
 # hiredis-node
 
 Node extension that wraps [hiredis][hiredis].
