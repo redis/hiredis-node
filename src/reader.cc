@@ -10,7 +10,7 @@ using namespace hiredis;
 static void *tryParentize(const redisReadTask *task, const Local<Value> &v) {
     Reader *r = reinterpret_cast<Reader*>(task->privdata);
     size_t pidx, vidx;
-    #if NODE_MODULE_VERSION >= 12
+    #if NODE_VERSION_AT_LEAST(0, 11, 3)
         Isolate *isolate = Isolate::GetCurrent();
     #endif
 
@@ -30,10 +30,10 @@ static void *tryParentize(const redisReadTask *task, const Local<Value> &v) {
         if (v->IsArray()) {
             r->handle[vidx].Dispose();
             r->handle[vidx].Clear();
-            #if NODE_MODULE_VERSION < 12
-                r->handle[vidx] = Persistent<Value>::New(v);
-            #else
+            #if NODE_VERSION_AT_LEAST(0, 11, 3)
                 r->handle[vidx] = Persistent<Value>::New(isolate, v);
+            #else
+                r->handle[vidx] = Persistent<Value>::New(v);
             #endif
             return (void*)vidx;
         } else {
@@ -43,10 +43,10 @@ static void *tryParentize(const redisReadTask *task, const Local<Value> &v) {
         }
     } else {
         /* There is no parent, so this value is the root object. */
-        #if NODE_MODULE_VERSION < 12
-            r->handle[1] = Persistent<Value>::New(v);
-        #else
+        #if NODE_VERSION_AT_LEAST(0, 11, 3)
             r->handle[1] = Persistent<Value>::New(isolate, v);
+        #else
+            r->handle[1] = Persistent<Value>::New(v);
         #endif
         return (void*)1;
     }
@@ -91,7 +91,7 @@ Reader::Reader(bool return_buffers) :
     reader->fn = &v8ReplyFunctions;
     reader->privdata = this;
 
-    #if NODE_MODULE_VERSION < 12
+    #if !NODE_VERSION_AT_LEAST(0, 11, 3)
         if (return_buffers) {
             Local<Object> global = Context::GetCurrent()->Global();
             Local<Value> bv = global->Get(String::NewSymbol("Buffer"));
@@ -116,23 +116,23 @@ Reader::~Reader() {
  * the caller (Reader::Get) and we don't have to the pay the overhead. */
 Local<Value> Reader::createString(char *str, size_t len) {
     if (return_buffers) {
-        #if NODE_MODULE_VERSION < 12
+        #if NODE_VERSION_AT_LEAST(0, 11, 3)
+            Local<Object> b = Buffer::New(str,len);
+            return Local<Value>::New(b);
+        #else
             if (len > buffer_pool_length) {
                 Buffer *b = Buffer::New(str,len);
                 return Local<Value>::New(b->handle_);
             } else {
                 return createBufferFromPool(str,len);
             }
-        #else
-            Local<Object> b = Buffer::New(str,len);
-            return Local<Value>::New(b);
         #endif
     } else {
         return String::New(str,len);
     }
 }
 
-#if NODE_MODULE_VERSION < 12
+#if !NODE_VERSION_AT_LEAST(0, 11, 3)
 Local<Value> Reader::createBufferFromPool(char *str, size_t len) {
     HandleScope scope;
     Local<Value> argv[3];

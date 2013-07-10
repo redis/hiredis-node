@@ -40,7 +40,7 @@ private:
      * replies. This defaults to false, so strings are returned by default. */
     bool return_buffers;
 
-    #if NODE_MODULE_VERSION < 12
+    #if !NODE_VERSION_AT_LEAST(0, 11, 3)
         /* Use a buffer pool like the fast buffers. */
         Local<Value> createBufferFromPool(char *str, size_t len);
         Persistent<Function> buffer_fn;
