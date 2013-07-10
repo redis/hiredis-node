@@ -10,6 +10,7 @@ using namespace hiredis;
 static void *tryParentize(const redisReadTask *task, const Local<Value> &v) {
     Reader *r = reinterpret_cast<Reader*>(task->privdata);
     size_t pidx, vidx;
+    Isolate *isolate = Isolate::GetCurrent();
 
     if (task->parent != NULL) {
         pidx = (size_t)task->parent->obj;
@@ -27,7 +28,7 @@ static void *tryParentize(const redisReadTask *task, const Local<Value> &v) {
         if (v->IsArray()) {
             r->handle[vidx].Dispose();
             r->handle[vidx].Clear();
-            r->handle[vidx] = Persistent<Value>::New(v);
+            r->handle[vidx] = Persistent<Value>::New(isolate, v);
             return (void*)vidx;
         } else {
             /* Return value doesn't matter for inner value, as long as it is
@@ -36,7 +37,7 @@ static void *tryParentize(const redisReadTask *task, const Local<Value> &v) {
         }
     } else {
         /* There is no parent, so this value is the root object. */
-        r->handle[1] = Persistent<Value>::New(v);
+        r->handle[1] = Persistent<Value>::New(isolate, v);
         return (void*)1;
     }
 }
@@ -79,20 +80,6 @@ Reader::Reader(bool return_buffers) :
     reader = redisReaderCreate();
     reader->fn = &v8ReplyFunctions;
     reader->privdata = this;
-
-    if (return_buffers) {
-        Local<Object> global = Context::GetCurrent()->Global();
-        Local<Value> bv = global->Get(String::NewSymbol("Buffer"));
-        assert(bv->IsFunction());
-        Local<Function> bf = Local<Function>::Cast(bv);
-        buffer_fn = Persistent<Function>::New(bf);
-
-        buffer_pool_length = 8*1024; /* Same as node */
-        buffer_pool_offset = 0;
-
-        Buffer *b = Buffer::New(buffer_pool_length);
-        buffer_pool = Persistent<Object>::New(b->handle_);
-    }
 }
 
 Reader::~Reader() {
@@ -103,38 +90,11 @@ Reader::~Reader() {
  * the caller (Reader::Get) and we don't have to the pay the overhead. */
 Local<Value> Reader::createString(char *str, size_t len) {
     if (return_buffers) {
-        if (len > buffer_pool_length) {
-            Buffer *b = Buffer::New(str,len);
-            return Local<Value>::New(b->handle_);
-        } else {
-            return createBufferFromPool(str,len);
-        }
+        Local<Object> b = Buffer::New(str,len);
+        return Local<Value>::New(b);
     } else {
         return String::New(str,len);
     }
-}
-
-Local<Value> Reader::createBufferFromPool(char *str, size_t len) {
-    HandleScope scope;
-    Local<Value> argv[3];
-    Local<Object> instance;
-
-    assert(len <= buffer_pool_length);
-    if (buffer_pool_length - buffer_pool_offset < len) {
-        Buffer *b = Buffer::New(buffer_pool_length);
-        buffer_pool.Dispose();
-        buffer_pool = Persistent<Object>::New(b->handle_);
-        buffer_pool_offset = 0;
-    }
-
-    memcpy(Buffer::Data(buffer_pool)+buffer_pool_offset,str,len);
-
-    argv[0] = Local<Value>::New(buffer_pool);
-    argv[1] = Integer::New(len);
-    argv[2] = Integer::New(buffer_pool_offset);
-    instance = buffer_fn->NewInstance(3,argv);
-    buffer_pool_offset += len;
-    return scope.Close(instance);
 }
 
 Handle<Value> Reader::New(const Arguments& args) {
