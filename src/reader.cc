@@ -10,6 +10,9 @@ using namespace hiredis;
 static void *tryParentize(const redisReadTask *task, const Local<Value> &v) {
     Reader *r = reinterpret_cast<Reader*>(task->privdata);
     size_t pidx, vidx;
+    #if NODE_VERSION_AT_LEAST(0, 11, 3)
+        Isolate *isolate = Isolate::GetCurrent();
+    #endif
 
     if (task->parent != NULL) {
         pidx = (size_t)task->parent->obj;
@@ -27,7 +30,11 @@ static void *tryParentize(const redisReadTask *task, const Local<Value> &v) {
         if (v->IsArray()) {
             r->handle[vidx].Dispose();
             r->handle[vidx].Clear();
-            r->handle[vidx] = Persistent<Value>::New(v);
+            #if NODE_VERSION_AT_LEAST(0, 11, 3)
+                r->handle[vidx] = Persistent<Value>::New(isolate, v);
+            #else
+                r->handle[vidx] = Persistent<Value>::New(v);
+            #endif
             return (void*)vidx;
         } else {
             /* Return value doesn't matter for inner value, as long as it is
@@ -36,7 +43,11 @@ static void *tryParentize(const redisReadTask *task, const Local<Value> &v) {
         }
     } else {
         /* There is no parent, so this value is the root object. */
-        r->handle[1] = Persistent<Value>::New(v);
+        #if NODE_VERSION_AT_LEAST(0, 11, 3)
+            r->handle[1] = Persistent<Value>::New(isolate, v);
+        #else
+            r->handle[1] = Persistent<Value>::New(v);
+        #endif
         return (void*)1;
     }
 }
@@ -80,19 +91,21 @@ Reader::Reader(bool return_buffers) :
     reader->fn = &v8ReplyFunctions;
     reader->privdata = this;
 
-    if (return_buffers) {
-        Local<Object> global = Context::GetCurrent()->Global();
-        Local<Value> bv = global->Get(String::NewSymbol("Buffer"));
-        assert(bv->IsFunction());
-        Local<Function> bf = Local<Function>::Cast(bv);
-        buffer_fn = Persistent<Function>::New(bf);
+    #if !NODE_VERSION_AT_LEAST(0, 11, 3)
+        if (return_buffers) {
+            Local<Object> global = Context::GetCurrent()->Global();
+            Local<Value> bv = global->Get(String::NewSymbol("Buffer"));
+            assert(bv->IsFunction());
+            Local<Function> bf = Local<Function>::Cast(bv);
+            buffer_fn = Persistent<Function>::New(bf);
 
-        buffer_pool_length = 8*1024; /* Same as node */
-        buffer_pool_offset = 0;
+            buffer_pool_length = 8*1024; /* Same as node */
+            buffer_pool_offset = 0;
 
-        Buffer *b = Buffer::New(buffer_pool_length);
-        buffer_pool = Persistent<Object>::New(b->handle_);
-    }
+            Buffer *b = Buffer::New(buffer_pool_length);
+            buffer_pool = Persistent<Object>::New(b->handle_);
+        }
+    #endif
 }
 
 Reader::~Reader() {
@@ -103,17 +116,23 @@ Reader::~Reader() {
  * the caller (Reader::Get) and we don't have to the pay the overhead. */
 Local<Value> Reader::createString(char *str, size_t len) {
     if (return_buffers) {
-        if (len > buffer_pool_length) {
-            Buffer *b = Buffer::New(str,len);
-            return Local<Value>::New(b->handle_);
-        } else {
-            return createBufferFromPool(str,len);
-        }
+        #if NODE_VERSION_AT_LEAST(0, 11, 3)
+            Local<Object> b = Buffer::New(str,len);
+            return Local<Value>::New(b);
+        #else
+            if (len > buffer_pool_length) {
+                Buffer *b = Buffer::New(str,len);
+                return Local<Value>::New(b->handle_);
+            } else {
+                return createBufferFromPool(str,len);
+            }
+        #endif
     } else {
         return String::New(str,len);
     }
 }
 
+#if !NODE_VERSION_AT_LEAST(0, 11, 3)
 Local<Value> Reader::createBufferFromPool(char *str, size_t len) {
     HandleScope scope;
     Local<Value> argv[3];
@@ -136,6 +155,7 @@ Local<Value> Reader::createBufferFromPool(char *str, size_t len) {
     buffer_pool_offset += len;
     return scope.Close(instance);
 }
+#endif
 
 Handle<Value> Reader::New(const Arguments& args) {
     HandleScope scope;
