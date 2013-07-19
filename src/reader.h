@@ -14,9 +14,15 @@ public:
     ~Reader();
 
     static void Initialize(Handle<Object> target);
+#if !NODE_VERSION_AT_LEAST(0, 11, 4)
+    static Handle<Value> New(const Arguments& args);
+    static Handle<Value> Feed(const Arguments &args);
+    static Handle<Value> Get(const Arguments &args);
+#else /* NODE_VERSION_AT_LEAST(0, 11, 4) */
     template<class T> static void New(const v8::FunctionCallbackInfo<T> &info);
     template<class T> static void Feed(const v8::FunctionCallbackInfo<T> &info);
     template<class T> static void Get(const v8::FunctionCallbackInfo<T> &info);
+#endif /* NODE_VERSION_AT_LEAST(0, 11, 4) */
 
     /* Objects created by the reply object functions need to get back to the
      * reader when the reply is requested via Reader::Get(). Keep temporary
@@ -39,6 +45,15 @@ private:
     /* Determines whether to return strings or buffers for single line and bulk
      * replies. This defaults to false, so strings are returned by default. */
     bool return_buffers;
+#if !NODE_VERSION_AT_LEAST(0, 11, 4)
+
+    /* Use a buffer pool like the fast buffers. */
+    Local<Value> createBufferFromPool(char *str, size_t len);
+    Persistent<Function> buffer_fn;
+    Persistent<Object> buffer_pool;
+    size_t buffer_pool_length;
+    size_t buffer_pool_offset;
+#endif /* ! NODE_VERSION_AT_LEAST(0, 11, 4) */
 };
 
 };
