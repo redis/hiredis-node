@@ -1,7 +1,7 @@
 #include <v8.h>
 #include <node.h>
-#include <node_version.h>
 #include <hiredis/hiredis.h>
+#include "nan.h"
 
 namespace hiredis {
 
@@ -14,15 +14,9 @@ public:
     ~Reader();
 
     static void Initialize(Handle<Object> target);
-#if !NODE_VERSION_AT_LEAST(0, 11, 4)
-    static Handle<Value> New(const Arguments& args);
-    static Handle<Value> Feed(const Arguments &args);
-    static Handle<Value> Get(const Arguments &args);
-#else /* NODE_VERSION_AT_LEAST(0, 11, 4) */
-    template<class T> static void New(const v8::FunctionCallbackInfo<T> &info);
-    template<class T> static void Feed(const v8::FunctionCallbackInfo<T> &info);
-    template<class T> static void Get(const v8::FunctionCallbackInfo<T> &info);
-#endif /* NODE_VERSION_AT_LEAST(0, 11, 4) */
+    static NAN_METHOD(New);
+    static NAN_METHOD(Feed);
+    static NAN_METHOD(Get);
 
     /* Objects created by the reply object functions need to get back to the
      * reader when the reply is requested via Reader::Get(). Keep temporary
@@ -45,7 +39,7 @@ private:
     /* Determines whether to return strings or buffers for single line and bulk
      * replies. This defaults to false, so strings are returned by default. */
     bool return_buffers;
-#if !NODE_VERSION_AT_LEAST(0, 11, 4)
+#if NODE_MODULE_VERSION < 0xB
 
     /* Use a buffer pool like the fast buffers. */
     Local<Value> createBufferFromPool(char *str, size_t len);
