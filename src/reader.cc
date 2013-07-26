@@ -28,7 +28,7 @@ static void *tryParentize(const redisReadTask *task, const Local<Value> &v) {
         if (v->IsArray()) {
             NanDispose(r->handle[vidx]);
             r->handle[vidx].Clear();
-            NanAssignPersistent(Object, r->handle[vidx], v);
+            NanAssignPersistent(Value, r->handle[vidx], v);
             return (void*)vidx;
         } else {
             /* Return value doesn't matter for inner value, as long as it is
@@ -80,7 +80,7 @@ Reader::Reader(bool return_buffers) :
     reader = redisReaderCreate();
     reader->fn = &v8ReplyFunctions;
     reader->privdata = this;
-#if NODE_MODULE_VERSION < 0xB
+#if NODE_MODULE_VERSION < 0xC
     if (return_buffers) {
         Local<Object> global = Context::GetCurrent()->Global();
         Local<Value> bv = global->Get(String::NewSymbol("Buffer"));
@@ -105,7 +105,7 @@ Reader::~Reader() {
  * the caller (Reader::Get) and we don't have to the pay the overhead. */
 inline Local<Value> Reader::createString(char *str, size_t len) {
     if (return_buffers) {
-#if NODE_MODULE_VERSION < 0xB
+#if NODE_MODULE_VERSION < 0xC
         if (len > buffer_pool_length) {
             Buffer *b = Buffer::New(str,len);
             return Local<Value>::New(b->handle_);
@@ -121,7 +121,7 @@ inline Local<Value> Reader::createString(char *str, size_t len) {
     }
 }
 
-#if NODE_MODULE_VERSION < 0xB
+#if NODE_MODULE_VERSION < 0xC
 Local<Value> Reader::createBufferFromPool(char *str, size_t len) {
     HandleScope scope;
     Local<Value> argv[3];

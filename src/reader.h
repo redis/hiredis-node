@@ -39,7 +39,7 @@ private:
     /* Determines whether to return strings or buffers for single line and bulk
      * replies. This defaults to false, so strings are returned by default. */
     bool return_buffers;
-#if NODE_MODULE_VERSION < 0xB
+#if NODE_MODULE_VERSION < 0xC
 
     /* Use a buffer pool like the fast buffers. */
     Local<Value> createBufferFromPool(char *str, size_t len);
