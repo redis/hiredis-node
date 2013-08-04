@@ -17,6 +17,9 @@
           'xcode_settings': {
             'GCC_C_LANGUAGE_STANDARD': 'c99'
           }
+        }],
+        ['OS=="solaris"', {
+          'cflags+': [ '-std=c99' ]
         }]
       ]
     }
