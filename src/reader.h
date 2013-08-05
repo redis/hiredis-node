@@ -47,7 +47,7 @@ private:
     Persistent<Object> buffer_pool;
     size_t buffer_pool_length;
     size_t buffer_pool_offset;
-#endif /* ! NODE_VERSION_AT_LEAST(0, 11, 4) */
+#endif
 };
 
 };

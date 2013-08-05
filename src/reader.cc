@@ -18,7 +18,7 @@ static void *tryParentize(const redisReadTask *task, const Local<Value> &v) {
         /* When there is a parent, it should be an array. */
         Local<Value> lhandle = NanPersistentToLocal(r->handle[pidx]);
         assert(lhandle->IsArray());
-        Local<Array> parent = Local<Array>::Cast(lhandle->ToObject());
+        Local<Array> parent = lhandle.As<Array>();
         parent->Set(task->idx,v);
 
         /* Store the handle when this is an inner array. Otherwise, hiredis
@@ -27,7 +27,6 @@ static void *tryParentize(const redisReadTask *task, const Local<Value> &v) {
         vidx = pidx+1;
         if (v->IsArray()) {
             NanDispose(r->handle[vidx]);
-            r->handle[vidx].Clear();
             NanAssignPersistent(Value, r->handle[vidx], v);
             return (void*)vidx;
         } else {
@@ -80,6 +79,7 @@ Reader::Reader(bool return_buffers) :
     reader = redisReaderCreate();
     reader->fn = &v8ReplyFunctions;
     reader->privdata = this;
+
 #if NODE_MODULE_VERSION < 0xC
     if (return_buffers) {
         Local<Object> global = Context::GetCurrent()->Global();
@@ -113,8 +113,7 @@ inline Local<Value> Reader::createString(char *str, size_t len) {
             return createBufferFromPool(str,len);
         }
 #else
-            Local<Object> b = NanNewBufferHandle(str,len);
-            return Local<Value>::New(b);
+        return NanNewBufferHandle(str,len);
 #endif
     } else {
         return String::New(str,len);
@@ -149,8 +148,9 @@ Local<Value> Reader::createBufferFromPool(char *str, size_t len) {
 NAN_METHOD(Reader::New) {
     NanScope();
     bool return_buffers = false;
+
     if (args.Length() > 0 && args[0]->IsObject()) {
-        Local<Value> bv = args[0]->ToObject()->Get(String::New("return_buffers"));
+        Local<Value> bv = args[0].As<Object>()->Get(String::New("return_buffers"));
         if (bv->IsBoolean())
             return_buffers = bv->ToBoolean()->Value();
     }
@@ -175,11 +175,10 @@ NAN_METHOD(Reader::Feed) {
 
     Reader *r = ObjectWrap::Unwrap<Reader>(args.This());
     if (args.Length() == 0) {
-        NanReturnValue(ThrowException(Exception::Error(
-            String::New("First argument must be a string or buffer"))));
+        NanThrowTypeError("First argument must be a string or buffer");
     } else {
-        if(Buffer::HasInstance(args[0])) {
-           Local<Object> buffer_object = args[0]->ToObject();
+        if (Buffer::HasInstance(args[0])) {
+           Local<Object> buffer_object = args[0].As<Object>();
            char *data;
            size_t length;
 
@@ -189,11 +188,10 @@ NAN_METHOD(Reader::Feed) {
            /* Can't handle OOM for now. */
            assert(redisReaderFeed(r->reader, data, length) == REDIS_OK);
        } else if (args[0]->IsString()) {
-           String::Utf8Value str(args[0]->ToString());
+           String::Utf8Value str(args[0].As<String>());
            redisReplyReaderFeed(r->reader, *str, str.length());
        } else {
-           NanReturnValue(ThrowException(Exception::Error(
-               String::New("Invalid argument"))));
+           NanThrowError("Invalid argument");
        }
 
     }
@@ -219,11 +217,10 @@ NAN_METHOD(Reader::Get) {
             /* Dispose and clear used handles. */
             for (i = 1; i < 3; i++) {
                 NanDispose(r->handle[i]);
-                r->handle[i].Clear();
             }
         }
     } else {
-        NanReturnValue(ThrowException(Exception::Error(String::New(r->reader->errstr))));
+        NanThrowError(r->reader->errstr);
     }
     NanReturnValue(reply);
 }
