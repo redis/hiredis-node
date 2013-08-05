@@ -80,6 +80,7 @@ Reader::Reader(bool return_buffers) :
     reader = redisReaderCreate();
     reader->fn = &v8ReplyFunctions;
     reader->privdata = this;
+
 #if NODE_MODULE_VERSION < 0xC
     if (return_buffers) {
         Local<Object> global = Context::GetCurrent()->Global();
@@ -149,6 +150,7 @@ Local<Value> Reader::createBufferFromPool(char *str, size_t len) {
 NAN_METHOD(Reader::New) {
     NanScope();
     bool return_buffers = false;
+
     if (args.Length() > 0 && args[0]->IsObject()) {
         Local<Value> bv = args[0]->ToObject()->Get(String::New("return_buffers"));
         if (bv->IsBoolean())
