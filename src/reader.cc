@@ -18,7 +18,7 @@ static void *tryParentize(const redisReadTask *task, const Local<Value> &v) {
         /* When there is a parent, it should be an array. */
         Local<Value> lhandle = NanPersistentToLocal(r->handle[pidx]);
         assert(lhandle->IsArray());
-        Local<Array> parent = Local<Array>::Cast(lhandle->ToObject());
+        Local<Array> parent = lhandle.As<Array>();
         parent->Set(task->idx,v);
 
         /* Store the handle when this is an inner array. Otherwise, hiredis
@@ -150,7 +150,7 @@ NAN_METHOD(Reader::New) {
     bool return_buffers = false;
 
     if (args.Length() > 0 && args[0]->IsObject()) {
-        Local<Value> bv = args[0]->ToObject()->Get(String::New("return_buffers"));
+        Local<Value> bv = args[0].As<Object>()->Get(String::New("return_buffers"));
         if (bv->IsBoolean())
             return_buffers = bv->ToBoolean()->Value();
     }
@@ -178,7 +178,7 @@ NAN_METHOD(Reader::Feed) {
         NanThrowTypeError("First argument must be a string or buffer");
     } else {
         if(Buffer::HasInstance(args[0])) {
-           Local<Object> buffer_object = args[0]->ToObject();
+           Local<Object> buffer_object = args[0].As<Object>();
            char *data;
            size_t length;
 
