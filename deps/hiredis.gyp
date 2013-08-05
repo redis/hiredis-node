@@ -1,10 +1,10 @@
 {
   'targets': [
     {
-      'target_name': 'hiredis',
+      'target_name': 'libhiredis',
       'type': 'static_library',
       'direct_dependent_settings': {
-        'include_dirs': [ '.' ],
+        'include_dirs': [ '.' ]
       },
       'sources': [
         './hiredis/hiredis.c',

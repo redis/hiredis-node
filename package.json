@@ -6,7 +6,7 @@
   "author": "Pieter Noordhuis <pcnoordhuis@gmail.com>",
   "main": "hiredis",
   "scripts": {
-    "preinstall": "node-gyp clean && node-gyp configure && rm -rf deps/hiredis && git clone https://github.com/kkoopa/hiredis.git deps/hiredis && node-gyp build",
+    "preinstall": "node-gyp clean && rm -rf hiredis/deps && cd deps && git clone https://github.com/kkoopa/hiredis.git && cd .. && node-gyp configure && node-gyp build",
     "test": "node test/reader.js"
   },
   "dependencies": {
