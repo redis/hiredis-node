@@ -177,7 +177,7 @@ NAN_METHOD(Reader::Feed) {
     if (args.Length() == 0) {
         NanThrowTypeError("First argument must be a string or buffer");
     } else {
-        if(Buffer::HasInstance(args[0])) {
+        if (Buffer::HasInstance(args[0])) {
            Local<Object> buffer_object = args[0].As<Object>();
            char *data;
            size_t length;
@@ -188,7 +188,7 @@ NAN_METHOD(Reader::Feed) {
            /* Can't handle OOM for now. */
            assert(redisReaderFeed(r->reader, data, length) == REDIS_OK);
        } else if (args[0]->IsString()) {
-           String::Utf8Value str(args[0]->ToString());
+           String::Utf8Value str(args[0].As<String>());
            redisReplyReaderFeed(r->reader, *str, str.length());
        } else {
            NanThrowError("Invalid argument");
