@@ -1,7 +1,7 @@
 #include <v8.h>
 #include <node.h>
-#include <node_version.h>
 #include <hiredis/hiredis.h>
+#include "nan.h"
 
 namespace hiredis {
 
@@ -14,9 +14,9 @@ public:
     ~Reader();
 
     static void Initialize(Handle<Object> target);
-    static Handle<Value> New(const Arguments& args);
-    static Handle<Value> Feed(const Arguments &args);
-    static Handle<Value> Get(const Arguments &args);
+    static NAN_METHOD(New);
+    static NAN_METHOD(Feed);
+    static NAN_METHOD(Get);
 
     /* Objects created by the reply object functions need to get back to the
      * reader when the reply is requested via Reader::Get(). Keep temporary
@@ -39,15 +39,15 @@ private:
     /* Determines whether to return strings or buffers for single line and bulk
      * replies. This defaults to false, so strings are returned by default. */
     bool return_buffers;
+#if NODE_MODULE_VERSION < 0xC
 
-    #if !NODE_VERSION_AT_LEAST(0, 11, 3)
-        /* Use a buffer pool like the fast buffers. */
-        Local<Value> createBufferFromPool(char *str, size_t len);
-        Persistent<Function> buffer_fn;
-        Persistent<Object> buffer_pool;
-        size_t buffer_pool_length;
-        size_t buffer_pool_offset;
-    #endif
+    /* Use a buffer pool like the fast buffers. */
+    Local<Value> createBufferFromPool(char *str, size_t len);
+    Persistent<Function> buffer_fn;
+    Persistent<Object> buffer_pool;
+    size_t buffer_pool_length;
+    size_t buffer_pool_offset;
+#endif /* ! NODE_VERSION_AT_LEAST(0, 11, 4) */
 };
 
 };
