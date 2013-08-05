@@ -114,8 +114,8 @@ inline Local<Value> Reader::createString(char *str, size_t len) {
             return createBufferFromPool(str,len);
         }
 #else
-            Local<Object> b = NanNewBufferHandle(str,len);
-            return Local<Value>::New(b);
+        Local<Object> b = NanNewBufferHandle(str,len);
+        return Local<Value>::New(b);
 #endif
     } else {
         return String::New(str,len);
