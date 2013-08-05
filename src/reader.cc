@@ -27,7 +27,6 @@ static void *tryParentize(const redisReadTask *task, const Local<Value> &v) {
         vidx = pidx+1;
         if (v->IsArray()) {
             NanDispose(r->handle[vidx]);
-            r->handle[vidx].Clear();
             NanAssignPersistent(Value, r->handle[vidx], v);
             return (void*)vidx;
         } else {
@@ -114,8 +113,7 @@ inline Local<Value> Reader::createString(char *str, size_t len) {
             return createBufferFromPool(str,len);
         }
 #else
-        Local<Object> b = NanNewBufferHandle(str,len);
-        return Local<Value>::New(b);
+        return NanNewBufferHandle(str,len);
 #endif
     } else {
         return String::New(str,len);
@@ -177,8 +175,7 @@ NAN_METHOD(Reader::Feed) {
 
     Reader *r = ObjectWrap::Unwrap<Reader>(args.This());
     if (args.Length() == 0) {
-        NanReturnValue(ThrowException(Exception::Error(
-            String::New("First argument must be a string or buffer"))));
+            NanThrowTypeError("First argument must be a string or buffer");
     } else {
         if(Buffer::HasInstance(args[0])) {
            Local<Object> buffer_object = args[0]->ToObject();
@@ -194,8 +191,7 @@ NAN_METHOD(Reader::Feed) {
            String::Utf8Value str(args[0]->ToString());
            redisReplyReaderFeed(r->reader, *str, str.length());
        } else {
-           NanReturnValue(ThrowException(Exception::Error(
-               String::New("Invalid argument"))));
+           NanThrowError("Invalid argument");
        }
 
     }
@@ -221,11 +217,10 @@ NAN_METHOD(Reader::Get) {
             /* Dispose and clear used handles. */
             for (i = 1; i < 3; i++) {
                 NanDispose(r->handle[i]);
-                r->handle[i].Clear();
             }
         }
     } else {
-        NanReturnValue(ThrowException(Exception::Error(String::New(r->reader->errstr))));
+        NanThrowError(r->reader->errstr);
     }
     NanReturnValue(reply);
 }
