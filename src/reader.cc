@@ -175,7 +175,7 @@ NAN_METHOD(Reader::Feed) {
 
     Reader *r = ObjectWrap::Unwrap<Reader>(args.This());
     if (args.Length() == 0) {
-            NanThrowTypeError("First argument must be a string or buffer");
+        NanThrowTypeError("First argument must be a string or buffer");
     } else {
         if(Buffer::HasInstance(args[0])) {
            Local<Object> buffer_object = args[0]->ToObject();
