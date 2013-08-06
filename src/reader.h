@@ -1,7 +1,12 @@
 #include <v8.h>
 #include <node.h>
 #include <node_version.h>
+#ifdef _WIN32
+#include <hiredis-win/hiredis.h>
+#pragma comment(lib, "ws2_32.lib")
+#else
 #include <hiredis/hiredis.h>
+#endif
 
 namespace hiredis {
 

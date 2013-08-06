@@ -7,7 +7,7 @@
         , 'src/reader.cc'
       ],
       'dependencies': [
-        'deps/hiredis.gyp:hiredis'
+        'deps/hiredis.gyp:hiredis-c'
       ],
       'defines': [
           '_GNU_SOURCE'
