@@ -20,5 +20,11 @@
   },
   "bugs": {
     "url": "https://github.com/pietern/hiredis-node/issues"
-  }
+  },
+  "licenses": [
+    {
+      "type": "BSD",
+      "url": "https://github.com/pietern/hiredis-node#license"
+    }
+  ]
 }
