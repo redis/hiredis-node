@@ -4,12 +4,13 @@
   "version": "0.1.15",
   "homepage": "http://github.com/pietern/hiredis-node",
   "author": "Pieter Noordhuis <pcnoordhuis@gmail.com>",
-  "main": "hiredis",
+  "main": "lib/hiredis",
   "scripts": {
-    "test": "node test/reader.js"
+    "test": "node test/reader.js",
+    "install": "node build.js || nodejs build.js"
   },
   "dependencies": {
-    "bindings": "*"
+    "mkdirp":"~0.3.5"
   },
   "engines": {
     "node": ">= 0.6.0"

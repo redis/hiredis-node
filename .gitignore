@@ -2,3 +2,4 @@
 .lock-wscript
 tmp
 node_modules
+lib/binding

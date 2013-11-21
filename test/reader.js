@@ -1,5 +1,5 @@
 var assert = require("assert"),
-    hiredis = require("../hiredis");
+    hiredis = require("../");
 
 var passed = 0;
 var failed = 0;
