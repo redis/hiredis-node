@@ -6,12 +6,11 @@
   "author": "Pieter Noordhuis <pcnoordhuis@gmail.com>",
   "main": "hiredis",
   "scripts": {
-    "preinstall": "node-gyp clean && rm -rf deps/hiredis && cd deps && git clone https://github.com/kkoopa/hiredis.git && cd .. && node-gyp configure && node-gyp build",
     "test": "node test/reader.js"
   },
   "dependencies": {
     "bindings": "*",
-    "nan": "~0.3.0"
+    "nan": "~0.6.0"
   },
   "engines": {
     "node": ">= 0.6.0"

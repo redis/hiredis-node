@@ -8,7 +8,7 @@ namespace hiredis {
 using namespace v8;
 using namespace node;
 
-class Reader : ObjectWrap {
+class Reader : public ObjectWrap {
 public:
     Reader(bool);
     ~Reader();

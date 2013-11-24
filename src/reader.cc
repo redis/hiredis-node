@@ -61,7 +61,7 @@ static void *createInteger(const redisReadTask *task, long long value) {
 }
 
 static void *createNil(const redisReadTask *task) {
-    Local<Value> v(Local<Value>::New(Null()));
+    Local<Value> v(NanNewLocal<Value>(Null()));
     return tryParentize(task,v);
 }
 
@@ -212,7 +212,7 @@ NAN_METHOD(Reader::Get) {
         } else {
             /* Complete replies should always have a root object at index 1. */
             assert((size_t)index == 1);
-            reply = NanPersistentToLocal(r->handle[1]);
+            reply = NanNewLocal<Value>(NanPersistentToLocal(r->handle[1]));
 
             /* Dispose and clear used handles. */
             for (i = 1; i < 3; i++) {
