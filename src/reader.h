@@ -3,6 +3,12 @@
 #include <hiredis/hiredis.h>
 #include "nan.h"
 
+#if NODE_MODULE_VERSION < 12
+#define _USE_CUSTOM_BUFFER_POOL 1
+#else
+#define _USE_CUSTOM_BUFFER_POOL 0
+#endif
+
 namespace hiredis {
 
 using namespace v8;
@@ -39,9 +45,8 @@ private:
     /* Determines whether to return strings or buffers for single line and bulk
      * replies. This defaults to false, so strings are returned by default. */
     bool return_buffers;
-#if NODE_MODULE_VERSION < 0xC
 
-    /* Use a buffer pool like the fast buffers. */
+#if _USE_CUSTOM_BUFFER_POOL
     Local<Value> createBufferFromPool(char *str, size_t len);
     Persistent<Function> buffer_fn;
     Persistent<Object> buffer_pool;

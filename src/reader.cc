@@ -16,10 +16,10 @@ static void *tryParentize(const redisReadTask *task, const Local<Value> &v) {
         assert(pidx > 0 && pidx < 9);
 
         /* When there is a parent, it should be an array. */
-        Local<Value> lhandle = NanPersistentToLocal(r->handle[pidx]);
-        assert(lhandle->IsArray());
-        Local<Array> parent = lhandle.As<Array>();
-        parent->Set(task->idx,v);
+        Local<Value> lvalue = NanPersistentToLocal(r->handle[pidx]);
+        assert(lvalue->IsArray());
+        Local<Array> larray = lvalue.As<Array>();
+        larray->Set(task->idx,v);
 
         /* Store the handle when this is an inner array. Otherwise, hiredis
          * doesn't care about the return value as long as the value is set in
@@ -80,7 +80,7 @@ Reader::Reader(bool return_buffers) :
     reader->fn = &v8ReplyFunctions;
     reader->privdata = this;
 
-#if NODE_MODULE_VERSION < 0xC
+#if _USE_CUSTOM_BUFFER_POOL
     if (return_buffers) {
         Local<Object> global = Context::GetCurrent()->Global();
         Local<Value> bv = global->Get(String::NewSymbol("Buffer"));
@@ -105,7 +105,7 @@ Reader::~Reader() {
  * the caller (Reader::Get) and we don't have to the pay the overhead. */
 inline Local<Value> Reader::createString(char *str, size_t len) {
     if (return_buffers) {
-#if NODE_MODULE_VERSION < 0xC
+#if _USE_CUSTOM_BUFFER_POOL
         if (len > buffer_pool_length) {
             Buffer *b = Buffer::New(str,len);
             return Local<Value>::New(b->handle_);
@@ -120,7 +120,7 @@ inline Local<Value> Reader::createString(char *str, size_t len) {
     }
 }
 
-#if NODE_MODULE_VERSION < 0xC
+#if _USE_CUSTOM_BUFFER_POOL
 Local<Value> Reader::createBufferFromPool(char *str, size_t len) {
     HandleScope scope;
     Local<Value> argv[3];
@@ -147,6 +147,7 @@ Local<Value> Reader::createBufferFromPool(char *str, size_t len) {
 
 NAN_METHOD(Reader::New) {
     NanScope();
+
     bool return_buffers = false;
 
     if (args.Length() > 0 && args[0]->IsObject()) {
@@ -164,6 +165,7 @@ void Reader::Initialize(Handle<Object> target) {
     NanScope();
 
     Local<FunctionTemplate> t = FunctionTemplate::New(New);
+
     t->InstanceTemplate()->SetInternalFieldCount(1);
     NODE_SET_PROTOTYPE_METHOD(t, "feed", Feed);
     NODE_SET_PROTOTYPE_METHOD(t, "get", Get);
@@ -174,26 +176,26 @@ NAN_METHOD(Reader::Feed) {
     NanScope();
 
     Reader *r = ObjectWrap::Unwrap<Reader>(args.This());
+
     if (args.Length() == 0) {
         NanThrowTypeError("First argument must be a string or buffer");
     } else {
         if (Buffer::HasInstance(args[0])) {
-           Local<Object> buffer_object = args[0].As<Object>();
-           char *data;
-           size_t length;
+            Local<Object> buffer_object = args[0].As<Object>();
+            char *data;
+            size_t length;
 
-           data = Buffer::Data(buffer_object);
-           length = Buffer::Length(buffer_object);
+            data = Buffer::Data(buffer_object);
+            length = Buffer::Length(buffer_object);
 
-           /* Can't handle OOM for now. */
-           assert(redisReaderFeed(r->reader, data, length) == REDIS_OK);
-       } else if (args[0]->IsString()) {
-           String::Utf8Value str(args[0].As<String>());
-           redisReplyReaderFeed(r->reader, *str, str.length());
-       } else {
-           NanThrowError("Invalid argument");
-       }
-
+            /* Can't handle OOM for now. */
+            assert(redisReaderFeed(r->reader, data, length) == REDIS_OK);
+        } else if (args[0]->IsString()) {
+            String::Utf8Value str(args[0].As<String>());
+            redisReplyReaderFeed(r->reader, *str, str.length());
+        } else {
+            NanThrowError("Invalid argument");
+        }
     }
 
     NanReturnValue(args.This());
@@ -201,6 +203,7 @@ NAN_METHOD(Reader::Feed) {
 
 NAN_METHOD(Reader::Get) {
     NanScope();
+
     Reader *r = ObjectWrap::Unwrap<Reader>(args.This());
     void *index = NULL;
     Local<Value> reply;
@@ -222,5 +225,6 @@ NAN_METHOD(Reader::Get) {
     } else {
         NanThrowError(r->reader->errstr);
     }
+
     NanReturnValue(reply);
 }
