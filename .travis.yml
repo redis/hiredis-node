@@ -1,5 +1,10 @@
 language: node_js
 
+# See: https://github.com/pietern/hiredis-node/pull/40
+before_install:
+ - sudo rm -rf /dev/shm
+ - sudo ln -s /run/shm /dev/shm
+
 node_js:
   - "0.11"
   - "0.10"
