@@ -59,6 +59,12 @@ reader.get() // => <Buffer 68 65 6c 6c 6f>
 
 [node_redis]: http://github.com/mranney/node_redis
 
+## Windows
+
+Dmitry Gorbunov (@fuwaneko) made a [fork of hiredis-node][windows_fork] with Windows support.
+
+[windows_fork]: https://github.com/fuwaneko/hiredis-node
+
 ## License
 
 This code is released under the BSD license, after the license of hiredis.
