@@ -1,4 +1,4 @@
-var hiredis = require("./hiredis"),
+var hiredis = require("./"),
     num_clients = 10,
     active_clients = 0,
     pipeline = 0,
