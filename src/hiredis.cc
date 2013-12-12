@@ -9,5 +9,5 @@ extern "C" {
         NanScope();
         hiredis::Reader::Initialize(target);
     }
-    NODE_MODULE(hiredis, init);
+    NODE_MODULE(hiredis, init)
 }
