@@ -1,6 +1,8 @@
 #include <v8.h>
 #include <node.h>
+#if _USE_CUSTOM_BUFFER_POOL
 #include <node_buffer.h>
+#endif
 #include <string.h>
 #include <assert.h>
 #include "reader.h"
