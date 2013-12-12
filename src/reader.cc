@@ -101,8 +101,9 @@ Reader::~Reader() {
     redisReaderFree(reader);
 }
 
-/* Don't use a HandleScope here, so the objects are created within the scope of
- * the caller (Reader::Get) and we don't have to the pay the overhead. */
+/* Don't declare an extra scope here, so the objects are created within the
+ * scope inherited from the caller (Reader::Get) and we don't have to the pay
+ * the overhead. */
 inline Local<Value> Reader::createString(char *str, size_t len) {
     if (return_buffers) {
 #if _USE_CUSTOM_BUFFER_POOL
