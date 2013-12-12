@@ -1,22 +1,28 @@
 #include <v8.h>
 #include <node.h>
-#include <node_version.h>
 #include <hiredis/hiredis.h>
+#include "nan.h"
+
+#if NODE_MODULE_VERSION < 12
+#define _USE_CUSTOM_BUFFER_POOL 1
+#else
+#define _USE_CUSTOM_BUFFER_POOL 0
+#endif
 
 namespace hiredis {
 
 using namespace v8;
 using namespace node;
 
-class Reader : ObjectWrap {
+class Reader : public ObjectWrap {
 public:
     Reader(bool);
     ~Reader();
 
     static void Initialize(Handle<Object> target);
-    static Handle<Value> New(const Arguments& args);
-    static Handle<Value> Feed(const Arguments &args);
-    static Handle<Value> Get(const Arguments &args);
+    static NAN_METHOD(New);
+    static NAN_METHOD(Feed);
+    static NAN_METHOD(Get);
 
     /* Objects created by the reply object functions need to get back to the
      * reader when the reply is requested via Reader::Get(). Keep temporary
@@ -40,12 +46,13 @@ private:
      * replies. This defaults to false, so strings are returned by default. */
     bool return_buffers;
 
-    /* Use a buffer pool like the fast buffers. */
+#if _USE_CUSTOM_BUFFER_POOL
     Local<Value> createBufferFromPool(char *str, size_t len);
     Persistent<Function> buffer_fn;
     Persistent<Object> buffer_pool;
     size_t buffer_pool_length;
     size_t buffer_pool_offset;
+#endif
 };
 
 };

@@ -6,7 +6,7 @@ using namespace v8;
 
 extern "C" {
     static void init (Handle<Object> target) {
-        HandleScope scope;
+        NanScope();
         hiredis::Reader::Initialize(target);
     }
     NODE_MODULE(hiredis, init);

@@ -6,6 +6,7 @@
           'src/hiredis.cc'
         , 'src/reader.cc'
       ],
+      'include_dirs': ["<!(node -e \"require('nan')\")"],
       'dependencies': [
         'deps/hiredis.gyp:hiredis'
       ],
