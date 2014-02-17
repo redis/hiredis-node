@@ -2,7 +2,7 @@
   "name": "hiredis",
   "description": "Wrapper for reply processing code in hiredis",
   "version": "0.1.16",
-  "homepage": "http://github.com/pietern/hiredis-node",
+  "homepage": "http://github.com/redis/hiredis-node",
   "author": "Pieter Noordhuis <pcnoordhuis@gmail.com>",
   "main": "hiredis",
   "scripts": {
@@ -17,15 +17,15 @@
   },
   "repository": {
     "type": "git",
-    "url": "git@github.com:pietern/hiredis-node.git"
+    "url": "https://github.com/redis/hiredis-node.git"
   },
   "bugs": {
-    "url": "https://github.com/pietern/hiredis-node/issues"
+    "url": "https://github.com/redis/hiredis-node/issues"
   },
   "licenses": [
     {
       "type": "BSD",
-      "url": "https://github.com/pietern/hiredis-node#license"
+      "url": "https://github.com/redis/hiredis-node#license"
     }
   ]
 }
