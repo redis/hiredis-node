@@ -1,4 +1,4 @@
-[![Build Status](https://travis-ci.org/pietern/hiredis-node.png?branch=master)](https://travis-ci.org/pietern/hiredis-node)
+[![Build Status](https://travis-ci.org/redis/hiredis-node.png?branch=master)](https://travis-ci.org/redis/hiredis-node)
 
 # hiredis-node
 
