@@ -63,7 +63,7 @@ static void *createInteger(const redisReadTask *task, long long value) {
 }
 
 static void *createNil(const redisReadTask *task) {
-    Local<Value> v(NanNull());
+    Local<Value> v(NanNew(NanNull()));
     return tryParentize(task,v);
 }
 
