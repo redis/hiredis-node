@@ -18,7 +18,7 @@ static void *tryParentize(const redisReadTask *task, const Local<Value> &v) {
         assert(pidx > 0 && pidx < 9);
 
         /* When there is a parent, it should be an array. */
-        Local<Value> lvalue = NanPersistentToLocal(r->handle[pidx]);
+        Local<Value> lvalue = NanNew(r->handle[pidx]);
         assert(lvalue->IsArray());
         Local<Array> larray = lvalue.As<Array>();
         larray->Set(task->idx,v);
@@ -28,8 +28,8 @@ static void *tryParentize(const redisReadTask *task, const Local<Value> &v) {
          * its parent array. */
         vidx = pidx+1;
         if (v->IsArray()) {
-            NanDispose(r->handle[vidx]);
-            NanAssignPersistent(Value, r->handle[vidx], v);
+            NanDisposePersistent(r->handle[vidx]);
+            NanAssignPersistent(r->handle[vidx], v);
             return (void*)vidx;
         } else {
             /* Return value doesn't matter for inner value, as long as it is
@@ -38,13 +38,13 @@ static void *tryParentize(const redisReadTask *task, const Local<Value> &v) {
         }
     } else {
         /* There is no parent, so this value is the root object. */
-        NanAssignPersistent(Value, r->handle[1], v);
+        NanAssignPersistent(r->handle[1], v);
         return (void*)1;
     }
 }
 
 static void *createArray(const redisReadTask *task, int size) {
-    Local<Value> v(Array::New(size));
+    Local<Value> v(NanNew<Array>(size));
     return tryParentize(task,v);
 }
 
@@ -58,12 +58,12 @@ static void *createString(const redisReadTask *task, char *str, size_t len) {
 }
 
 static void *createInteger(const redisReadTask *task, long long value) {
-    Local<Value> v(Number::New(value));
+    Local<Value> v(NanNew<Number>(value));
     return tryParentize(task,v);
 }
 
 static void *createNil(const redisReadTask *task) {
-    Local<Value> v(NanNewLocal<Value>(Null()));
+    Local<Value> v(NanNew(NanNull()));
     return tryParentize(task,v);
 }
 
@@ -119,7 +119,7 @@ inline Local<Value> Reader::createString(char *str, size_t len) {
         return NanNewBufferHandle(str,len);
 #endif
     } else {
-        return String::New(str,len);
+        return NanNew<String>(str,len);
     }
 }
 
@@ -154,7 +154,7 @@ NAN_METHOD(Reader::New) {
     bool return_buffers = false;
 
     if (args.Length() > 0 && args[0]->IsObject()) {
-        Local<Value> bv = args[0].As<Object>()->Get(String::New("return_buffers"));
+        Local<Value> bv = args[0].As<Object>()->Get(NanNew<String>("return_buffers"));
         if (bv->IsBoolean())
             return_buffers = bv->ToBoolean()->Value();
     }
@@ -167,12 +167,12 @@ NAN_METHOD(Reader::New) {
 void Reader::Initialize(Handle<Object> target) {
     NanScope();
 
-    Local<FunctionTemplate> t = FunctionTemplate::New(New);
+    Local<FunctionTemplate> t = NanNew<FunctionTemplate>(New);
 
     t->InstanceTemplate()->SetInternalFieldCount(1);
     NODE_SET_PROTOTYPE_METHOD(t, "feed", Feed);
     NODE_SET_PROTOTYPE_METHOD(t, "get", Get);
-    target->Set(String::NewSymbol("Reader"), t->GetFunction());
+    target->Set(NanSymbol("Reader"), t->GetFunction());
 }
 
 NAN_METHOD(Reader::Feed) {
@@ -218,11 +218,11 @@ NAN_METHOD(Reader::Get) {
         } else {
             /* Complete replies should always have a root object at index 1. */
             assert((size_t)index == 1);
-            reply = NanNewLocal<Value>(NanPersistentToLocal(r->handle[1]));
+            reply = NanNew<Value>(r->handle[1]);
 
             /* Dispose and clear used handles. */
             for (i = 1; i < 3; i++) {
-                NanDispose(r->handle[i]);
+                NanDisposePersistent(r->handle[i]);
             }
         }
     } else {
