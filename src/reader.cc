@@ -172,7 +172,7 @@ void Reader::Initialize(Handle<Object> target) {
     t->InstanceTemplate()->SetInternalFieldCount(1);
     NODE_SET_PROTOTYPE_METHOD(t, "feed", Feed);
     NODE_SET_PROTOTYPE_METHOD(t, "get", Get);
-    target->Set(NanSymbol("Reader"), t->GetFunction());
+    target->Set(NanNew<String>("Reader"), t->GetFunction());
 }
 
 NAN_METHOD(Reader::Feed) {
