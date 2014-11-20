@@ -6,7 +6,7 @@ Node extension that wraps [hiredis][hiredis].
 Because Node is already good at doing I/O, hiredis-node only provides
 bindings to the protocol parser.
 The hiredis protocol parser is faster than JavaScript protocol parsers,
-but the speedup only becomes noticable for large replies.
+but the speedup only becomes noticeable for large replies.
 If you use Redis for simple SET/GET operations, there won't be a big
 benefit to using hiredis.
 If you use Redis for big SUNION/SINTER/LRANGE/ZRANGE operations, the
