@@ -6,7 +6,7 @@
   "author": "Pieter Noordhuis <pcnoordhuis@gmail.com>",
   "main": "hiredis",
   "scripts": {
-    "test": "node test/reader.js"
+    "test": "node test/reader.js && node test/writer.js"
   },
   "dependencies": {
     "bindings": "*",
