@@ -1,16 +1,32 @@
 var net = require("net"),
     hiredis = require('bindings')('hiredis.node');
 
+var bufStar = new Buffer("*", "ascii");
+var bufDollar = new Buffer("$", "ascii");
+var bufCrlf = new Buffer("\r\n", "ascii");
+
 exports.Reader = hiredis.Reader;
 
 exports.writeCommand = function() {
-    var i, args = arguments;
-    var str = "*" + args.length + "\r\n";
-    for (i = 0; i < args.length; i++) {
+    var args = arguments,
+        bufLen = new Buffer(String(args.length), "ascii"),
+        parts = [bufStar, bufLen, bufCrlf],
+        size = 3 + bufLen.length;
+
+    for (var i = 0; i < args.length; i++) {
         var arg = args[i];
-        str += "$" + arg.length + "\r\n" + arg + "\r\n";
+        if (!Buffer.isBuffer(arg))
+            arg = new Buffer(String(arg));
+
+        bufLen = new Buffer(String(arg.length), "ascii");
+        parts = parts.concat([
+            bufDollar, bufLen, bufCrlf,
+            arg, bufCrlf
+        ]);
+        size += 5 + bufLen.length + arg.length;
     }
-    return str;
+
+    return Buffer.concat(parts, size);
 }
 
 exports.createConnection = function(port, host) {
@@ -19,8 +35,8 @@ exports.createConnection = function(port, host) {
     var _write = s.write;
 
     s.write = function() {
-        var str = exports.writeCommand.apply(this, arguments);
-        return _write.call(s, str);
+        var data = exports.writeCommand.apply(this, arguments);
+        return _write.call(s, data);
     }
 
     s.on("data", function(data) {
