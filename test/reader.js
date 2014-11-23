@@ -1,19 +1,6 @@
 var assert = require("assert"),
+    test = require("./testlib")(),
     hiredis = require("../hiredis");
-
-var passed = 0;
-var failed = 0;
-
-function test(str, fn) {
-    try {
-        fn();
-        passed++;
-    } catch (err) {
-        console.log("\x1B[1;31m" + str + " failed!\x1B[0m");
-        console.log(err.stack + "\n");
-        failed++;
-    }
-}
 
 test("CreateReader", function() {
     var reader = new hiredis.Reader();
@@ -172,7 +159,7 @@ test("UndefinedReplyOnIncompleteFeed", function() {
     assert.deepEqual("foo", reader.get());
 });
 
-test("Leaks", function(beforeExit) {
+test("Leaks", function() {
     /* The "leaks" utility is only available on OSX. */
     if (process.platform != "darwin") return;
 
