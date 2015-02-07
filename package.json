@@ -1,19 +1,20 @@
 {
   "name": "hiredis",
   "description": "Wrapper for reply processing code in hiredis",
-  "version": "0.1.17",
+  "version": "0.2.0",
   "homepage": "http://github.com/redis/hiredis-node",
-  "author": "Pieter Noordhuis <pcnoordhuis@gmail.com>",
+  "author": "Jan-Erik Rediger <janerik@fnordig.de>",
+  "contributors": ["Pieter Noordhuis <pcnoordhuis@gmail.com>" ],
   "main": "hiredis",
   "scripts": {
-    "test": "node test/reader.js"
+    "test": "node test/reader.js && node test/writer.js"
   },
   "dependencies": {
     "bindings": "*",
-    "nan": "~1.1.0"
+    "nan": "~1.5.0"
   },
   "engines": {
-    "node": ">= 0.6.0"
+    "node": ">= 0.8.0"
   },
   "repository": {
     "type": "git",
