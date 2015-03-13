@@ -1,6 +1,6 @@
 #include <v8.h>
 #include <node.h>
-#include <hiredis/hiredis.h>
+#include <hiredis/read.h>
 #include "nan.h"
 
 #if NODE_MODULE_VERSION < 12
