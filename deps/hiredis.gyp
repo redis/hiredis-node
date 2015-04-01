@@ -7,10 +7,7 @@
         'include_dirs': [ '.' ],
       },
       'sources': [
-        './hiredis/hiredis.c',
-        './hiredis/net.c',
         './hiredis/sds.c',
-        './hiredis/async.c',
         './hiredis/read.c',
       ],
       'conditions': [
