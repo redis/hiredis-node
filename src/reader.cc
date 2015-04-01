@@ -78,8 +78,7 @@ static redisReplyObjectFunctions v8ReplyFunctions = {
 Reader::Reader(bool return_buffers) :
     return_buffers(return_buffers)
 {
-    reader = redisReaderCreateWithFunctions(NULL);
-    reader->fn = &v8ReplyFunctions;
+    reader = redisReaderCreateWithFunctions(&v8ReplyFunctions);
     reader->privdata = this;
 
 #if _USE_CUSTOM_BUFFER_POOL
