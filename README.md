@@ -61,7 +61,11 @@ reader.get() // => <Buffer 68 65 6c 6c 6f>
 
 ## Windows
 
-Dmitry Gorbunov (@fuwaneko) made a [fork of hiredis-node][windows_fork] with Windows support.
+Since Version 0.3.0 hiredis-node officially supports Windows.
+A simple `npm install hiredis` should just work.
+If not, please open a bug report.
+
+There's also a [Windows fork][windows_fork] by Dmitry Gorbunos (@fuwaneko), which should now be unnecessary.
 
 [windows_fork]: https://github.com/fuwaneko/hiredis-node
 
