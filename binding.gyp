@@ -8,7 +8,7 @@
       ],
       'include_dirs': ["<!(node -e \"require('nan')\")"],
       'dependencies': [
-        'deps/hiredis.gyp:hiredis'
+        'deps/hiredis.gyp:hiredis-c'
       ],
       'defines': [
           '_GNU_SOURCE'
