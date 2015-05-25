@@ -1,9 +1,8 @@
 language: node_js
+sudo: false
 
-# See: https://github.com/pietern/hiredis-node/pull/40
 before_install:
- - sudo rm -rf /dev/shm
- - sudo ln -s /run/shm /dev/shm
+  - node --version | grep -q 'v0.8' && npm install -g npm@latest || true
 
 node_js:
   - "0.11"
