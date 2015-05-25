@@ -23,10 +23,5 @@
   "bugs": {
     "url": "https://github.com/redis/hiredis-node/issues"
   },
-  "licenses": [
-    {
-      "type": "BSD-3-Clause",
-      "url": "https://github.com/redis/hiredis-node#license"
-    }
-  ]
+  "license": "BSD-3-Clause"
 }
