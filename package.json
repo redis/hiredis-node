@@ -11,7 +11,7 @@
   },
   "dependencies": {
     "bindings": "*",
-    "nan": "~1.5.0"
+    "nan": "~1.8.4"
   },
   "engines": {
     "node": ">= 0.8.0"
