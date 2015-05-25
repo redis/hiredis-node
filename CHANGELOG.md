@@ -1,7 +1,12 @@
+### 0.4.0 (2015-05-25)
+
+* Upgrade to latest nan to be compatible with io.js
+* Update license attribute
+
 ### 0.3.0 (2015-04-03)
 
 * Update to latest hiredis including basic windows support
-* Refactore to use only the parser from hiredis source.
+* Refactor to use only the parser from hiredis source.
 
 ### 0.2.0 (2015-02-08)
 
