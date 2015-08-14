@@ -1,12 +1,9 @@
-#include <v8.h>
-#include <node.h>
 #include "reader.h"
 
 using namespace v8;
 
 extern "C" {
-    static void init (Handle<Object> target) {
-        NanScope();
+    static NAN_MODULE_INIT(init) {
         hiredis::Reader::Initialize(target);
     }
     NODE_MODULE(hiredis, init)
