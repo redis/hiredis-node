@@ -9,6 +9,10 @@ environment:
       test_command: node
     - nodejs_version: 1
       test_command: iojs
+    - nodejs_version: 2
+      test_command: iojs
+    - nodejs_version: 3
+      test_command: iojs
 
 platform:
   - x86
