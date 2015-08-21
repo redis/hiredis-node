@@ -1,8 +1,3 @@
-#include <v8.h>
-#include <node.h>
-#if _USE_CUSTOM_BUFFER_POOL
-#include <node_buffer.h>
-#endif
 #include <string.h>
 #include <assert.h>
 #include "reader.h"
@@ -10,6 +5,8 @@
 using namespace hiredis;
 
 static void *tryParentize(const redisReadTask *task, const Local<Value> &v) {
+    Nan::HandleScope scope;
+
     Reader *r = reinterpret_cast<Reader*>(task->privdata);
     size_t pidx, vidx;
 
@@ -18,7 +15,7 @@ static void *tryParentize(const redisReadTask *task, const Local<Value> &v) {
         assert(pidx > 0 && pidx < 9);
 
         /* When there is a parent, it should be an array. */
-        Local<Value> lvalue = NanNew(r->handle[pidx]);
+        Local<Value> lvalue = Nan::New(r->handle[pidx]);
         assert(lvalue->IsArray());
         Local<Array> larray = lvalue.As<Array>();
         larray->Set(task->idx,v);
@@ -28,8 +25,7 @@ static void *tryParentize(const redisReadTask *task, const Local<Value> &v) {
          * its parent array. */
         vidx = pidx+1;
         if (v->IsArray()) {
-            NanDisposePersistent(r->handle[vidx]);
-            NanAssignPersistent(r->handle[vidx], v);
+            r->handle[vidx].Reset(v);
             return (void*)vidx;
         } else {
             /* Return value doesn't matter for inner value, as long as it is
@@ -38,33 +34,36 @@ static void *tryParentize(const redisReadTask *task, const Local<Value> &v) {
         }
     } else {
         /* There is no parent, so this value is the root object. */
-        NanAssignPersistent(r->handle[1], v);
+        r->handle[1].Reset(v);
         return (void*)1;
     }
 }
 
 static void *createArray(const redisReadTask *task, int size) {
-    Local<Value> v(NanNew<Array>(size));
-    return tryParentize(task,v);
+    Nan::HandleScope scope;
+
+    return tryParentize(task, Nan::New<Array>(size));
 }
 
 static void *createString(const redisReadTask *task, char *str, size_t len) {
+    Nan::HandleScope scope;
+
     Reader *r = reinterpret_cast<Reader*>(task->privdata);
     Local<Value> v(r->createString(str,len));
 
     if (task->type == REDIS_REPLY_ERROR)
-        v = Exception::Error(v->ToString());
+        v = Exception::Error(v.As<String>());
     return tryParentize(task,v);
 }
 
 static void *createInteger(const redisReadTask *task, long long value) {
-    Local<Value> v(NanNew<Number>(value));
-    return tryParentize(task,v);
+    Nan::HandleScope scope;
+    return tryParentize(task, Nan::New<Number>(value));
 }
 
 static void *createNil(const redisReadTask *task) {
-    Local<Value> v(NanNew(NanNull()));
-    return tryParentize(task,v);
+    Nan::HandleScope scope;
+    return tryParentize(task, Nan::Null());
 }
 
 static redisReplyObjectFunctions v8ReplyFunctions = {
@@ -72,12 +71,14 @@ static redisReplyObjectFunctions v8ReplyFunctions = {
     createArray,
     createInteger,
     createNil,
-    NULL /* No free function: cleanup is done in Reader::Get. */
+    0 /* No free function: cleanup is done in Reader::Get. */
 };
 
 Reader::Reader(bool return_buffers) :
     return_buffers(return_buffers)
 {
+    Nan::HandleScope scope;
+
     reader = redisReaderCreateWithFunctions(&v8ReplyFunctions);
     reader->privdata = this;
 
@@ -92,7 +93,7 @@ Reader::Reader(bool return_buffers) :
         buffer_pool_length = 8*1024; /* Same as node */
         buffer_pool_offset = 0;
 
-        Buffer *b = Buffer::New(buffer_pool_length);
+        node::Buffer *b = node::Buffer::New(buffer_pool_length);
         buffer_pool = Persistent<Object>::New(b->handle_);
     }
 #endif
@@ -109,16 +110,16 @@ inline Local<Value> Reader::createString(char *str, size_t len) {
     if (return_buffers) {
 #if _USE_CUSTOM_BUFFER_POOL
         if (len > buffer_pool_length) {
-            Buffer *b = Buffer::New(str,len);
+            node::Buffer *b = node::Buffer::New(str,len);
             return Local<Value>::New(b->handle_);
         } else {
             return createBufferFromPool(str,len);
         }
 #else
-        return NanNewBufferHandle(str,len);
+        return Nan::CopyBuffer(str,len).ToLocalChecked();
 #endif
     } else {
-        return NanNew<String>(str,len);
+        return Nan::New<String>(str,len).ToLocalChecked();
     }
 }
 
@@ -130,13 +131,13 @@ Local<Value> Reader::createBufferFromPool(char *str, size_t len) {
 
     assert(len <= buffer_pool_length);
     if (buffer_pool_length - buffer_pool_offset < len) {
-        Buffer *b = Buffer::New(buffer_pool_length);
+        node::Buffer *b = node::Buffer::New(buffer_pool_length);
         buffer_pool.Dispose();
         buffer_pool = Persistent<Object>::New(b->handle_);
         buffer_pool_offset = 0;
     }
 
-    memcpy(Buffer::Data(buffer_pool)+buffer_pool_offset,str,len);
+    memcpy(node::Buffer::Data(buffer_pool)+buffer_pool_offset,str,len);
 
     argv[0] = Local<Value>::New(buffer_pool);
     argv[1] = Integer::New(len);
@@ -148,85 +149,79 @@ Local<Value> Reader::createBufferFromPool(char *str, size_t len) {
 #endif
 
 NAN_METHOD(Reader::New) {
-    NanScope();
-
     bool return_buffers = false;
 
-    if (args.Length() > 0 && args[0]->IsObject()) {
-        Local<Value> bv = args[0].As<Object>()->Get(NanNew<String>("return_buffers"));
+    if (info.Length() > 0 && info[0]->IsObject()) {
+        Local<Value> bv = Nan::Get(info[0].As<Object>(), Nan::New("return_buffers").ToLocalChecked()).ToLocalChecked();
         if (bv->IsBoolean())
-            return_buffers = bv->ToBoolean()->Value();
+            return_buffers = Nan::To<bool>(bv).FromJust();
     }
 
     Reader *r = new Reader(return_buffers);
-    r->Wrap(args.This());
-    NanReturnValue(args.This());
+    r->Wrap(info.This());
+    info.GetReturnValue().Set(info.This());
 }
 
-void Reader::Initialize(Handle<Object> target) {
-    NanScope();
+NAN_MODULE_INIT(Reader::Initialize) {
+    Nan::HandleScope scope;
 
-    Local<FunctionTemplate> t = NanNew<FunctionTemplate>(New);
+    Local<FunctionTemplate> t = Nan::New<FunctionTemplate>(New);
 
     t->InstanceTemplate()->SetInternalFieldCount(1);
-    NODE_SET_PROTOTYPE_METHOD(t, "feed", Feed);
-    NODE_SET_PROTOTYPE_METHOD(t, "get", Get);
-    target->Set(NanNew<String>("Reader"), t->GetFunction());
+    Nan::SetPrototypeMethod(t, "feed", Feed);
+    Nan::SetPrototypeMethod(t, "get", Get);
+    Nan::Set(target, Nan::New("Reader").ToLocalChecked(), Nan::GetFunction(t).ToLocalChecked());
 }
 
 NAN_METHOD(Reader::Feed) {
-    NanScope();
+    Reader *r = Nan::ObjectWrap::Unwrap<Reader>(info.This());
 
-    Reader *r = ObjectWrap::Unwrap<Reader>(args.This());
-
-    if (args.Length() == 0) {
-        NanThrowTypeError("First argument must be a string or buffer");
+    if (info.Length() == 0) {
+        Nan::ThrowTypeError("First argument must be a string or buffer");
     } else {
-        if (Buffer::HasInstance(args[0])) {
-            Local<Object> buffer_object = args[0].As<Object>();
+        if (node::Buffer::HasInstance(info[0])) {
+            Local<Object> buffer_object = info[0].As<Object>();
             char *data;
             size_t length;
 
-            data = Buffer::Data(buffer_object);
-            length = Buffer::Length(buffer_object);
+            data = node::Buffer::Data(buffer_object);
+            length = node::Buffer::Length(buffer_object);
 
             /* Can't handle OOM for now. */
             assert(redisReaderFeed(r->reader, data, length) == REDIS_OK);
-        } else if (args[0]->IsString()) {
-            String::Utf8Value str(args[0].As<String>());
+        } else if (info[0]->IsString()) {
+            Nan::Utf8String str(info[0].As<String>());
             redisReplyReaderFeed(r->reader, *str, str.length());
         } else {
-            NanThrowError("Invalid argument");
+            Nan::ThrowError("Invalid argument");
         }
     }
 
-    NanReturnValue(args.This());
+    info.GetReturnValue().Set(info.This());
 }
 
 NAN_METHOD(Reader::Get) {
-    NanScope();
-
-    Reader *r = ObjectWrap::Unwrap<Reader>(args.This());
+    Reader *r = Nan::ObjectWrap::Unwrap<Reader>(info.This());
     void *index = NULL;
     Local<Value> reply;
     int i;
 
     if (redisReaderGetReply(r->reader,&index) == REDIS_OK) {
         if (index == 0) {
-            NanReturnUndefined();
+            return;
         } else {
             /* Complete replies should always have a root object at index 1. */
             assert((size_t)index == 1);
-            reply = NanNew<Value>(r->handle[1]);
+            reply = Nan::New(r->handle[1]);
 
             /* Dispose and clear used handles. */
             for (i = 1; i < 3; i++) {
-                NanDisposePersistent(r->handle[i]);
+                r->handle[i].Reset();
             }
         }
     } else {
-        NanThrowError(r->reader->errstr);
+        Nan::ThrowError(r->reader->errstr);
     }
 
-    NanReturnValue(reply);
+    info.GetReturnValue().Set(reply);
 }

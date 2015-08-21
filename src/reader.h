@@ -1,9 +1,7 @@
-#include <v8.h>
-#include <node.h>
+#include <nan.h>
 #include <hiredis/read.h>
-#include "nan.h"
 
-#if NODE_MODULE_VERSION < 12
+#if NODE_MODULE_VERSION < NODE_0_12_MODULE_VERSION
 #define _USE_CUSTOM_BUFFER_POOL 1
 #else
 #define _USE_CUSTOM_BUFFER_POOL 0
@@ -12,14 +10,13 @@
 namespace hiredis {
 
 using namespace v8;
-using namespace node;
 
-class Reader : public ObjectWrap {
+class Reader : public Nan::ObjectWrap {
 public:
     Reader(bool);
     ~Reader();
 
-    static void Initialize(Handle<Object> target);
+    static NAN_MODULE_INIT(Initialize);
     static NAN_METHOD(New);
     static NAN_METHOD(Feed);
     static NAN_METHOD(Get);
@@ -34,7 +31,7 @@ public:
      * from incomplete replies. These are persistent handles because
      * Reader::Get might not return a full reply and the objects need to be
      * kept around for subsequent calls. */
-    Persistent<Value> handle[9];
+    Nan::Persistent<Value> handle[9];
 
     /* Helper function to create string/buffer objects. */
     Local<Value> createString(char *str, size_t len);
