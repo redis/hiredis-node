@@ -14,7 +14,9 @@ before_install:
   - node --version | grep -q 'v0.8' && npm install -g npm@latest || true
 
 node_js:
+  - "0.12"
   - "0.11"
   - "0.10"
   - "0.8"
   - "iojs"
+  - "iojs-v2"
