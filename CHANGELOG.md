@@ -1,3 +1,7 @@
+### 0.4.1 (2015-08-22)
+
+* Upgrade to latest nan to be compatible with io.js (Thanks, Benjamin Byholm)
+
 ### 0.4.0 (2015-05-25)
 
 * Upgrade to latest nan to be compatible with io.js
