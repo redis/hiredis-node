@@ -29,9 +29,10 @@ For running on Travis check the bundled [.travis.yml](travis.yml).
 
 ## Contribute
 
+To work on the code, first fetch the bundled hiredis submodule, then build hiredis and run the tests.
+
 ```
-git submodule init
-git submodule update
+git submodule update --init
 npm install
 npm test
 ```
