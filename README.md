@@ -27,6 +27,15 @@ For running on Travis check the bundled [.travis.yml](travis.yml).
 
 [npm]: https://npmjs.org/
 
+## Contribute
+
+```
+git submodule init
+git submodule update
+npm install
+npm test
+```
+
 ## Usage
 
 hiredis-node works out of the box with Matt Ranney's [node_redis][node_redis].
