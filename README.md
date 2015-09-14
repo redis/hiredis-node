@@ -23,7 +23,7 @@ npm install hiredis
 ```
 
 This requires `gcc` / `g++` 4.8 or newer.
-For running on Travis check the bundled [.travis.yml](travis.yml).
+For running on Travis check the bundled [.travis.yml](.travis.yml).
 
 [npm]: https://npmjs.org/
 
