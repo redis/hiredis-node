@@ -4,14 +4,16 @@
   "version": "0.4.1",
   "homepage": "http://github.com/redis/hiredis-node",
   "author": "Jan-Erik Rediger <janerik@fnordig.de>",
-  "contributors": ["Pieter Noordhuis <pcnoordhuis@gmail.com>" ],
+  "contributors": [
+    "Pieter Noordhuis <pcnoordhuis@gmail.com>"
+  ],
   "main": "hiredis",
   "scripts": {
     "test": "node test/reader.js && node test/writer.js"
   },
   "dependencies": {
-    "bindings": "*",
-    "nan": "^2.0.5"
+    "bindings": "1.2.1",
+    "nan": "2.0.9"
   },
   "engines": {
     "node": ">= 0.8.0"
