@@ -11,7 +11,7 @@ addons:
 
 
 before_install:
-  - node --version | grep -q 'v0.8' && npm install -g npm@latest || true
+  - node --version | grep -q 'v0.8' && npm install -g npm@2 || true
 
 node_js:
   - "4.0.0"
