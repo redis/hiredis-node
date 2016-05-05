@@ -3,16 +3,11 @@ init:
 
 environment:
   matrix:
-    - nodejs_version: 0.11
-      test_command: node
+    - nodejs_version: 6
+    - nodejs_version: 5
+    - nodejs_version: 4
     - nodejs_version: 0.12
-      test_command: node
-    - nodejs_version: 1
-      test_command: iojs
-    - nodejs_version: 2
-      test_command: iojs
-    - nodejs_version: 3
-      test_command: iojs
+    - nodejs_version: 0.10
 
 platform:
   - x86
@@ -28,5 +23,5 @@ build: off
 test_script:
   - node --version
   - npm --version
-  - "%test_command% test/reader.js"
-  - "%test_command% test/writer.js"
+  - "node test/reader.js"
+  - "node test/writer.js"
