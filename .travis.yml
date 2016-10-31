@@ -14,11 +14,9 @@ before_install:
   - node --version | grep -q 'v0.8' && npm install -g npm@2 || true
 
 node_js:
-  - "6"
-  - "5"
-  - "4"
-  - "0.12"
-  - "0.10"
+  - '6'
+  - '5'
+  - '4'
 
 notifications:
   email: false

@@ -16,7 +16,7 @@
     "nan": "^2.3.4"
   },
   "engines": {
-    "node": ">= 0.10.0"
+    "node": ">= 4"
   },
   "repository": {
     "type": "git",
