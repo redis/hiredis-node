@@ -1,8 +1,21 @@
+#include <stdarg.h>
 #include <string.h>
 #include <assert.h>
 #include "reader.h"
 
 using namespace hiredis;
+
+#if defined(_WIN32)
+#define scprintf _scprintf
+#else
+static inline int scprintf(const char *format, ...) {
+    va_list args;
+    va_start(args, format);
+    int len = vsnprintf(NULL, 0, format, args);
+    va_end(args);
+    return len;
+}
+#endif
 
 static void *tryParentize(const redisReadTask *task, const Local<Value> &v) {
     Nan::HandleScope scope;
@@ -58,7 +71,17 @@ static void *createString(const redisReadTask *task, char *str, size_t len) {
 
 static void *createInteger(const redisReadTask *task, long long value) {
     Nan::HandleScope scope;
-    return tryParentize(task, Nan::New<Number>(value));
+    Local<Value> v;
+    if (value > MAX_SAFE_INTEGER) {
+        int len = scprintf("%lld", value);
+        char* str = new char[len + 1];
+        sprintf(str, "%lld", value);
+        v = Nan::New<String>(str,len).ToLocalChecked();
+        delete[] str;
+    } else {
+        v = Nan::New<Number>(value);
+    }
+    return tryParentize(task, v);
 }
 
 static void *createNil(const redisReadTask *task) {

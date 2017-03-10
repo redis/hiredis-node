@@ -7,6 +7,11 @@
 #define _USE_CUSTOM_BUFFER_POOL 0
 #endif
 
+// The largest integer value that can be stored in a JavaScript number without
+// losing precision. hiredis converts integers larger than this value to
+// strings.
+#define MAX_SAFE_INTEGER 9007199254740991
+
 namespace hiredis {
 
 using namespace v8;
