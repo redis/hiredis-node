@@ -1,5 +1,5 @@
 [![Build Status](https://travis-ci.org/redis/hiredis-node.png?branch=master)](https://travis-ci.org/redis/hiredis-node)
-
+[![Dependency Status](https://david-dm.org/redis/hiredis-node.png?theme=shields.io)](https://david-dm.org/redis/hiredis-node)
 # hiredis-node
 
 Node extension that wraps [hiredis][hiredis].
