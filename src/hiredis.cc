@@ -1,10 +1,9 @@
+#include <napi.h>
 #include "reader.h"
 
-using namespace v8;
-
-extern "C" {
-    static NAN_MODULE_INIT(init) {
-        hiredis::Reader::Initialize(target);
-    }
-    NODE_MODULE(hiredis, init)
+Napi::Object Init(Napi::Env env, Napi::Object exports) {
+    hiredis::Reader::Initialize(env, exports);
+    return exports;
 }
+
+NODE_API_MODULE(hiredis, Init)
