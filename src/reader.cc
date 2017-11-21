@@ -74,15 +74,12 @@ static redisReplyObjectFunctions v8ReplyFunctions = {
     0 /* No free function: cleanup is done in Reader::Get. */
 };
 
-Reader::Reader(bool return_buffers) :
-    return_buffers(return_buffers)
-{
-    Nan::HandleScope scope;
 
-    reader = redisReaderCreateWithFunctions(&v8ReplyFunctions);
-    reader->privdata = this;
-
-#if _USE_CUSTOM_BUFFER_POOL
+Reader::Reader(const Napi::CallbackInfo& info) : Napi::ObjectWrap<Database>(info) {
+    this->return_buffers = false;
+    this->reader = redisReaderCreateWithFunctions(&v8ReplyFunctions);
+    this->eader->privdata = this;
+    /*#if _USE_CUSTOM_BUFFER_POOL
     if (return_buffers) {
         Local<Object> global = Context::GetCurrent()->Global();
         Local<Value> bv = global->Get(String::NewSymbol("Buffer"));
@@ -90,14 +87,14 @@ Reader::Reader(bool return_buffers) :
         Local<Function> bf = Local<Function>::Cast(bv);
         buffer_fn = Persistent<Function>::New(bf);
 
-        buffer_pool_length = 8*1024; /* Same as node */
+        buffer_pool_length = 8*1024; // Same as node 
         buffer_pool_offset = 0;
 
         node::Buffer *b = node::Buffer::New(buffer_pool_length);
         buffer_pool = Persistent<Object>::New(b->handle_);
     }
-#endif
-}
+#endif*/
+  }
 
 Reader::~Reader() {
     redisReaderFree(reader);
@@ -123,7 +120,7 @@ inline Local<Value> Reader::createString(char *str, size_t len) {
     }
 }
 
-#if _USE_CUSTOM_BUFFER_POOL
+/*#if _USE_CUSTOM_BUFFER_POOL
 Local<Value> Reader::createBufferFromPool(char *str, size_t len) {
     HandleScope scope;
     Local<Value> argv[3];
@@ -146,34 +143,22 @@ Local<Value> Reader::createBufferFromPool(char *str, size_t len) {
     buffer_pool_offset += len;
     return scope.Close(instance);
 }
-#endif
+#endif*/
 
-NAN_METHOD(Reader::New) {
-    bool return_buffers = false;
-
-    if (info.Length() > 0 && info[0]->IsObject()) {
-        Local<Value> bv = Nan::Get(info[0].As<Object>(), Nan::New("return_buffers").ToLocalChecked()).ToLocalChecked();
-        if (bv->IsBoolean())
-            return_buffers = Nan::To<bool>(bv).FromJust();
-    }
-
-    Reader *r = new Reader(return_buffers);
-    r->Wrap(info.This());
-    info.GetReturnValue().Set(info.This());
+Napi::Object Reader::Initialize(Napi::Env env, Napi::Object exports) {
+    Napi::Function tpl = DefineClass(env, "Reader", {
+      InstanceMethod("get", &Reader::Get),
+      InstanceMethod("feed", &Reader::Feed)
+    }); 
+    constructor = Napi::Persistent(tpl);
+    constructor.SuppressDestruct();
+    exports.Set("Reader", tpl);
+    return exports;
 }
 
-NAN_MODULE_INIT(Reader::Initialize) {
-    Nan::HandleScope scope;
+Napi::Value Reader::Feed(const Napi::CallbackInfo& info) {
 
-    Local<FunctionTemplate> t = Nan::New<FunctionTemplate>(New);
 
-    t->InstanceTemplate()->SetInternalFieldCount(1);
-    Nan::SetPrototypeMethod(t, "feed", Feed);
-    Nan::SetPrototypeMethod(t, "get", Get);
-    Nan::Set(target, Nan::New("Reader").ToLocalChecked(), Nan::GetFunction(t).ToLocalChecked());
-}
-
-NAN_METHOD(Reader::Feed) {
     Reader *r = Nan::ObjectWrap::Unwrap<Reader>(info.This());
 
     if (info.Length() == 0) {
@@ -198,9 +183,13 @@ NAN_METHOD(Reader::Feed) {
     }
 
     info.GetReturnValue().Set(info.This());
+
+
 }
 
-NAN_METHOD(Reader::Get) {
+Napi::Value Reader::Get(const Napi::CallbackInfo& info) {
+    
+    
     Reader *r = Nan::ObjectWrap::Unwrap<Reader>(info.This());
     void *index = NULL;
     Local<Value> reply;
@@ -224,4 +213,6 @@ NAN_METHOD(Reader::Get) {
     }
 
     info.GetReturnValue().Set(reply);
+
+
 }

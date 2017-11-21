@@ -9,17 +9,15 @@
 
 namespace hiredis {
 
-using namespace v8;
-
-class Reader : public Nan::ObjectWrap {
+class Reader : public Napi::ObjectWrap<Reader> {
 public:
-    Reader(bool);
+    explicit Reader(const Napi::CallbackInfo& info);
     ~Reader();
 
-    static NAN_MODULE_INIT(Initialize);
-    static NAN_METHOD(New);
-    static NAN_METHOD(Feed);
-    static NAN_METHOD(Get);
+    static Napi::Object Initialize(Napi::Env, Napi::Object exports);
+    
+    Napi::Value Feed(const Napi::CallbackInfo& info);
+    Napi::Value Get(const Napi::CallbackInfo& info);
 
     /* Objects created by the reply object functions need to get back to the
      * reader when the reply is requested via Reader::Get(). Keep temporary
@@ -31,10 +29,10 @@ public:
      * from incomplete replies. These are persistent handles because
      * Reader::Get might not return a full reply and the objects need to be
      * kept around for subsequent calls. */
-    Nan::Persistent<Value> handle[9];
+    //Nan::Persistent<Value> handle[9];
 
     /* Helper function to create string/buffer objects. */
-    Local<Value> createString(char *str, size_t len);
+    //Local<Value> createString(char *str, size_t len);
 
 private:
     redisReader *reader;
