@@ -19,6 +19,15 @@ public:
     Napi::Value Feed(const Napi::CallbackInfo& info);
     Napi::Value Get(const Napi::CallbackInfo& info);
 
+private:
+    redisReader *reader;
+
+    /* Determines whether to return strings or buffers for single line and bulk
+     * replies. This defaults to false, so strings are returned by default. */
+    bool return_buffers;
+
+    static Napi::FunctionReference constructor;
+
     /* Objects created by the reply object functions need to get back to the
      * reader when the reply is requested via Reader::Get(). Keep temporary
      * objects in this handle. Use an array of handles because replies may
@@ -29,17 +38,10 @@ public:
      * from incomplete replies. These are persistent handles because
      * Reader::Get might not return a full reply and the objects need to be
      * kept around for subsequent calls. */
-    //Nan::Persistent<Value> handle[9];
+    Napi::Persistent<Value> handle[9];
 
     /* Helper function to create string/buffer objects. */
     //Local<Value> createString(char *str, size_t len);
-
-private:
-    redisReader *reader;
-
-    /* Determines whether to return strings or buffers for single line and bulk
-     * replies. This defaults to false, so strings are returned by default. */
-    bool return_buffers;
 
 /*#if _USE_CUSTOM_BUFFER_POOL
     Local<Value> createBufferFromPool(char *str, size_t len);
