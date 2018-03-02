@@ -4,7 +4,7 @@
 
 using namespace hiredis;
 
-Reader::Reader(const Napi::CallbackInfo& info) : Napi::ObjectWrap<Database>(info) {}
+Reader::Reader(const Napi::CallbackInfo& info) : Napi::ObjectWrap<Reader>(info) {}
 
 Reader::~Reader() {}
 

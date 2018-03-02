@@ -38,7 +38,7 @@ private:
      * from incomplete replies. These are persistent handles because
      * Reader::Get might not return a full reply and the objects need to be
      * kept around for subsequent calls. */
-    Napi::Persistent<Value> handle[9];
+    //static Napi::Persistent<Napi::Value> handle[9];
 
     /* Helper function to create string/buffer objects. */
     //Local<Value> createString(char *str, size_t len);
