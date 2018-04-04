@@ -1,7 +1,6 @@
 #include <string.h>
 #include <assert.h>
 #include "reader.h"
-#include <iostream>
 
 namespace hiredis {
 
@@ -14,8 +13,10 @@ namespace hiredis {
             assert(pidx > 0 && pidx < 9);
 
             // When there is a parent, it should be an array. 
+
             Napi::Value lvalue = Napi::Value(scope.Env(), r->handle[pidx].Value());
             assert(lvalue.IsArray());
+            //Local<Array> larray = lvalue.As<Array>();
             Napi::Array larray = lvalue.As<Napi::Array>();
             larray.Set(task->idx, v);
 
@@ -24,15 +25,16 @@ namespace hiredis {
             // its parent array. 
             vidx = pidx+1;
             if (v.IsArray()) {
-                r->handle[vidx].Reset(v.ToObject());
+                r->handle[vidx].Reset(v);
                 return (void*)vidx;
             } else {
                 // Return value doesn't matter for inner value, as long as it is 
                 // not NULL (which means OOM for hiredis). 
                 return (void*)0xcafef00d;
             }
-        } else {   
-            r->handle[1].Reset(v.ToObject()); 
+        } else {
+            // There is no parent, so this value is the root object. 
+            r->handle[1].Reset(v);
             return (void*)1;
         } 
     }
@@ -48,8 +50,8 @@ namespace hiredis {
         Napi::HandleScope scope(r->Env()); 
         Napi::Value v(r->createString(str, len));
         if (task->type == REDIS_REPLY_ERROR) {
-            std::cout << "ERRORE " << REDIS_REPLY_ERROR << std::endl;
-            //return tryParentize(task, Napi::Error::New(scope.Env(), v.ToString()));
+            // TODO
+            //v = Napi::Error::New(scope.Env(), v.ToString());
         }
         return tryParentize(task, v);
     }
@@ -106,8 +108,8 @@ namespace hiredis {
     Napi::Object Reader::Initialize(Napi::Env env, Napi::Object exports) {
         Napi::HandleScope scope(env);
         Napi::Function tpl = DefineClass(env, "Reader", {
-            InstanceMethod("get", &Reader::Get),
-            InstanceMethod("feed", &Reader::Feed)
+        InstanceMethod("get", &Reader::Get),
+        InstanceMethod("feed", &Reader::Feed)
         }); 
         constructor = Napi::Persistent(tpl);
         constructor.SuppressDestruct();
@@ -115,7 +117,7 @@ namespace hiredis {
         return exports;
     }
 
-    void Reader::Feed(const Napi::CallbackInfo& info) {
+    Napi::Value Reader::Feed(const Napi::CallbackInfo& info) {
         Napi::Env env = info.Env();
         if (info.Length() == 0) {
             throw Napi::TypeError::New(env, "First argument must be a string or buffer");
@@ -134,7 +136,7 @@ namespace hiredis {
                 throw Napi::Error::New(env, "invalid argument");
             }
         }
-        //return info.This();
+        return info.This();
     }
 
     Napi::Value Reader::Get(const Napi::CallbackInfo& info) {
@@ -146,10 +148,10 @@ namespace hiredis {
             if (index == 0) {
                 return env.Undefined();
             } else {
-                // Complete replies should always have a root object at index 1.
+                /* Complete replies should always have a root object at index 1. */
                 assert((size_t)index == 1); 
                 reply = Napi::Value(env, this->handle[1].Value());
-                // Dispose and clear used handles.
+                /* Dispose and clear used handles. */
                 for (i = 1; i < 3; i++) {
                     this->handle[i].Reset();
                 }
