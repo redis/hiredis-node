@@ -1,16 +1,15 @@
 #include <string.h>
 #include <assert.h>
 #include "reader.h"
+#include <iostream>
 
 namespace hiredis {
 
     static void *tryParentize(const redisReadTask *task, const Napi::Value &v) { 
-        std::cout << "called tryparentize" << std::endl;
         Napi::HandleScope scope(v.Env());
         Reader *r = reinterpret_cast<Reader*>(task->privdata);
         size_t pidx, vidx;
         if (task->parent != NULL) {
-            std::cout << "1 è diverso dal cazzo di null" << std::endl;
             pidx = (size_t)task->parent->obj;
             assert(pidx > 0 && pidx < 9);
 
@@ -26,7 +25,6 @@ namespace hiredis {
             // its parent array. 
             vidx = pidx+1;
             if (v.IsArray()) {
-                std::cout << "v.IsArray()" << std::endl;
                 r->handle[vidx].Reset(v.ToObject());
                 return (void*)vidx;
             } else {
@@ -35,8 +33,11 @@ namespace hiredis {
                 return (void*)0xcafef00d;
             }
         } else {
-            std::cout << "Ugliù ma qua risulta null" << std::endl;
-            r->handle[1].Reset(); 
+            if (v.IsNull()) {
+                r->handle[1].Reset(); 
+            } else {
+                r->handle[1].Reset(v.ToObject()); 
+            }  
             return (void*)1;
         } 
     }
@@ -52,8 +53,7 @@ namespace hiredis {
         Napi::HandleScope scope(r->Env()); 
         Napi::Value v(r->createString(str, len));
         if (task->type == REDIS_REPLY_ERROR) {
-            std::cout << "ERRORE " << REDIS_REPLY_ERROR << std::endl;
-            //return tryParentize(task, Napi::Error::New(scope.Env(), v.ToString()));
+            return tryParentize(task, Napi::Error::New(scope.Env(), v.ToString()).Value());
         }
         return tryParentize(task, v);
     }
@@ -93,7 +93,7 @@ namespace hiredis {
     }
 
     Reader::~Reader() {
-    redisReaderFree(this->reader);
+        redisReaderFree(this->reader);
     }
 
     /* Don't declare an extra scope here, so the objects are created within the
@@ -110,8 +110,8 @@ namespace hiredis {
     Napi::Object Reader::Initialize(Napi::Env env, Napi::Object exports) {
         Napi::HandleScope scope(env);
         Napi::Function tpl = DefineClass(env, "Reader", {
-        InstanceMethod("get", &Reader::Get),
-        InstanceMethod("feed", &Reader::Feed)
+            InstanceMethod("get", &Reader::Get),
+            InstanceMethod("feed", &Reader::Feed)
         }); 
         constructor = Napi::Persistent(tpl);
         constructor.SuppressDestruct();
@@ -119,7 +119,7 @@ namespace hiredis {
         return exports;
     }
 
-    Napi::Value Reader::Feed(const Napi::CallbackInfo& info) {
+    void Reader::Feed(const Napi::CallbackInfo& info) {
         Napi::Env env = info.Env();
         if (info.Length() == 0) {
             throw Napi::TypeError::New(env, "First argument must be a string or buffer");
@@ -138,7 +138,6 @@ namespace hiredis {
                 throw Napi::Error::New(env, "invalid argument");
             }
         }
-        return info.This();
     }
 
     Napi::Value Reader::Get(const Napi::CallbackInfo& info) {
