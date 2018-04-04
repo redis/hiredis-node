@@ -15,8 +15,7 @@ namespace hiredis {
         ~Reader();
 
         static Napi::Object Initialize(Napi::Env env, Napi::Object exports);
-        
-        Napi::Value Feed(const Napi::CallbackInfo& info);
+        void Feed(const Napi::CallbackInfo& info);
         Napi::Value Get(const Napi::CallbackInfo& info);
         /* Helper function to create string/buffer objects. */
         Napi::Value createString(char *str, size_t len);
@@ -31,7 +30,7 @@ namespace hiredis {
         * Reader::Get might not return a full reply and the objects need to be
         * kept around for subsequent calls. */
         Napi::Reference<Napi::Value> handle[9];
-
+        
     private:
         redisReader *reader;
 
@@ -40,14 +39,6 @@ namespace hiredis {
         bool return_buffers;
 
         static Napi::FunctionReference constructor;
-
-    /*#if _USE_CUSTOM_BUFFER_POOL
-        Local<Value> createBufferFromPool(char *str, size_t len);
-        Persistent<Function> buffer_fn;
-        Persistent<Object> buffer_pool;
-        size_t buffer_pool_length;
-        size_t buffer_pool_offset;
-    #endif*/
     };
 
 };
