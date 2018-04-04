@@ -5,10 +5,12 @@
 namespace hiredis {
 
     static void *tryParentize(const redisReadTask *task, const Napi::Value &v) { 
+        std::cout << "called tryparentize" << std::endl;
         Napi::HandleScope scope(v.Env());
         Reader *r = reinterpret_cast<Reader*>(task->privdata);
         size_t pidx, vidx;
         if (task->parent != NULL) {
+            std::cout << "1 è diverso dal cazzo di null" << std::endl;
             pidx = (size_t)task->parent->obj;
             assert(pidx > 0 && pidx < 9);
 
@@ -16,8 +18,7 @@ namespace hiredis {
 
             Napi::Value lvalue = Napi::Value(scope.Env(), r->handle[pidx].Value());
             assert(lvalue.IsArray());
-            //Local<Array> larray = lvalue.As<Array>();
-            Napi::Array larray = lvalue.As<Napi::Array>();
+            Napi::Array larray = lvalue.As<Napi::Array>();            
             larray.Set(task->idx, v);
 
             // Store the handle when this is an inner array. Otherwise, hiredis
@@ -25,7 +26,8 @@ namespace hiredis {
             // its parent array. 
             vidx = pidx+1;
             if (v.IsArray()) {
-                r->handle[vidx].Reset(v);
+                std::cout << "v.IsArray()" << std::endl;
+                r->handle[vidx].Reset(v.ToObject());
                 return (void*)vidx;
             } else {
                 // Return value doesn't matter for inner value, as long as it is 
@@ -33,8 +35,8 @@ namespace hiredis {
                 return (void*)0xcafef00d;
             }
         } else {
-            // There is no parent, so this value is the root object. 
-            r->handle[1].Reset(v);
+            std::cout << "Ugliù ma qua risulta null" << std::endl;
+            r->handle[1].Reset(); 
             return (void*)1;
         } 
     }
@@ -50,8 +52,8 @@ namespace hiredis {
         Napi::HandleScope scope(r->Env()); 
         Napi::Value v(r->createString(str, len));
         if (task->type == REDIS_REPLY_ERROR) {
-            // TODO
-            //v = Napi::Error::New(scope.Env(), v.ToString());
+            std::cout << "ERRORE " << REDIS_REPLY_ERROR << std::endl;
+            //return tryParentize(task, Napi::Error::New(scope.Env(), v.ToString()));
         }
         return tryParentize(task, v);
     }
@@ -64,7 +66,7 @@ namespace hiredis {
 
     static void *createNil(const redisReadTask *task) {
         Reader *r = reinterpret_cast<Reader*>(task->privdata);
-        Napi::HandleScope scope(r->Env()); 
+        Napi::HandleScope scope(r->Env());
         return tryParentize(task, scope.Env().Null());
     }
 
@@ -124,7 +126,7 @@ namespace hiredis {
         } else {
             if (info[0].IsBuffer()) {
                 Napi::Buffer<char> buffer = info[0].As<Napi::Buffer<char>>();
-                char *data = buffer.Data();
+                const char *data = buffer.Data();
                 size_t length = buffer.Length();
                 /* Can't handle OOM for now. */
                 assert(redisReaderFeed(this->reader, data, length) == REDIS_OK);
