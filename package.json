@@ -1,7 +1,7 @@
 {
   "name": "hiredis",
   "description": "Wrapper for reply processing code in hiredis",
-  "version": "0.5.0",
+  "version": "0.5.1-napi",
   "homepage": "http://github.com/redis/hiredis-node",
   "author": "Jan-Erik Rediger <janerik@fnordig.de>",
   "contributors": [
