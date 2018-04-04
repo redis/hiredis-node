@@ -1,12 +1,6 @@
 #include <napi.h>
 #include <hiredis/read.h>
 
-/*#if NODE_MODULE_VERSION < NODE_0_12_MODULE_VERSION
-#define _USE_CUSTOM_BUFFER_POOL 1
-#else
-#define _USE_CUSTOM_BUFFER_POOL 0
-#endif*/
-
 namespace hiredis {
 
     class Reader : public Napi::ObjectWrap<Reader> {
