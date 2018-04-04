@@ -9,7 +9,7 @@
   ],
   "main": "hiredis",
   "scripts": {
-    "test": "node test/reader.js",
+    "test": "node test/testify.js",
     "install": "node-gyp rebuild"
   },
   "gypfile": true,
