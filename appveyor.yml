@@ -3,6 +3,7 @@ init:
 
 environment:
   matrix:
+    - nodejs_version: 10
     - nodejs_version: 9
     - nodejs_version: 8
     - nodejs_version: 7
@@ -17,7 +18,7 @@ platform:
 install:
   - ps: Install-Product node $env:nodejs_version $env:platform
   - git submodule update --init --recursive
-  - npm install --msvs_version=2013
+  - npm install
 
 build: off
 
