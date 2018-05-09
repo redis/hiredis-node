@@ -3,11 +3,13 @@ init:
 
 environment:
   matrix:
+    - nodejs_version: 10
+    - nodejs_version: 9
+    - nodejs_version: 8
+    - nodejs_version: 7
     - nodejs_version: 6
     - nodejs_version: 5
     - nodejs_version: 4
-    - nodejs_version: 0.12
-    - nodejs_version: 0.10
 
 platform:
   - x86
@@ -16,7 +18,8 @@ platform:
 install:
   - ps: Install-Product node $env:nodejs_version $env:platform
   - git submodule update --init --recursive
-  - npm install --msvs_version=2013
+  - 'if "%nodejs_version%" LEQ 5 (npm install -g npm@5) else (npm install -g npm@latest)'
+  - npm install
 
 build: off
 

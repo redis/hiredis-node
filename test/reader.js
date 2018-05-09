@@ -149,7 +149,7 @@ test("MultiBulkReplyWithNonStringValues", function() {
 test("FeedWithBuffer", function() {
     var reader = new hiredis.Reader();
     reader.feed(new Buffer("$3\r\nfoo\r\n"));
-    assert.deepEqual("foo", reader.get());
+    assert.deepEqual(new String("foo"), reader.get());
 });
 
 test("UndefinedReplyOnIncompleteFeed", function() {
@@ -157,7 +157,7 @@ test("UndefinedReplyOnIncompleteFeed", function() {
     reader.feed("$3\r\nfoo");
     assert.deepEqual(undefined, reader.get());
     reader.feed("\r\n");
-    assert.deepEqual("foo", reader.get());
+    assert.deepEqual(new String("foo"), reader.get());
 });
 
 test("Leaks", function() {

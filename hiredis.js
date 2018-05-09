@@ -1,5 +1,5 @@
 var net = require("net"),
-    hiredis = require('bindings')('hiredis.node');
+    hiredis = require('bindings')('hiredis');
 
 var bufStar = new Buffer("*", "ascii");
 var bufDollar = new Buffer("$", "ascii");

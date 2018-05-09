@@ -1,7 +1,7 @@
 {
   "name": "hiredis",
   "description": "Wrapper for reply processing code in hiredis",
-  "version": "0.5.0",
+  "version": "0.5.1-napi",
   "homepage": "http://github.com/redis/hiredis-node",
   "author": "Jan-Erik Rediger <janerik@fnordig.de>",
   "contributors": [
@@ -9,14 +9,16 @@
   ],
   "main": "hiredis",
   "scripts": {
-    "test": "node test/reader.js && node test/writer.js"
+    "test": "node test/reader.js && node test/writer.js",
+    "install": "node-gyp rebuild"
   },
+  "gypfile": true,
   "dependencies": {
-    "bindings": "^1.2.1",
-    "nan": "^2.3.4"
+    "bindings": "^1.3.0",
+    "node-addon-api": "^1.3.0"
   },
   "engines": {
-    "node": ">= 0.10.0"
+    "node": ">= 4.0.0"
   },
   "repository": {
     "type": "git",
