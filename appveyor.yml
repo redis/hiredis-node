@@ -18,6 +18,7 @@ platform:
 install:
   - ps: Install-Product node $env:nodejs_version $env:platform
   - git submodule update --init --recursive
+  - 'if "%nodejs_version%" LEQ 5 (npm install -g npm@5) else (npm install -g npm@latest)'
   - npm install
 
 build: off
