@@ -12,7 +12,7 @@
     "test": "node test/reader.js && node test/writer.js"
   },
   "dependencies": {
-    "bindings": "^1.2.1",
+    "bindings": "1.4.0",
     "nan": "^2.3.4"
   },
   "engines": {
