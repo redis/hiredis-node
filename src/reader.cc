@@ -191,7 +191,7 @@ NAN_METHOD(Reader::Feed) {
             assert(redisReaderFeed(r->reader, data, length) == REDIS_OK);
         } else if (info[0]->IsString()) {
             Nan::Utf8String str(info[0].As<String>());
-            redisReplyReaderFeed(r->reader, *str, str.length());
+            redisReaderFeed(r->reader, *str, str.length());
         } else {
             Nan::ThrowError("Invalid argument");
         }
