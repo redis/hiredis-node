@@ -1,24 +1,10 @@
 language: node_js
 sudo: false
-env:
-  - CXX=g++-4.8
-addons:
-  apt:
-    sources:
-    - ubuntu-toolchain-r-test
-    packages:
-    - g++-4.8
-
-
-before_install:
-  - node --version | grep -q 'v0.8' && npm install -g npm@2 || true
 
 node_js:
-  - "6"
-  - "5"
-  - "4"
-  - "0.12"
-  - "0.10"
+  - "lts/erbium"
+  - "lts/dubnium"
+  - "stable"
 
 notifications:
   email: false
