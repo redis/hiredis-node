@@ -3,20 +3,17 @@ init:
 
 environment:
   matrix:
-    - nodejs_version: 6
-    - nodejs_version: 5
-    - nodejs_version: 4
-    - nodejs_version: 0.12
-    - nodejs_version: 0.10
-
-platform:
-  - x86
-  - x64
+    - nodejs_version: "lts/erbium"
+    - nodejs_version: "lts/dubnium"
+    - nodejs_version: "stable"
 
 install:
-  - ps: Install-Product node $env:nodejs_version $env:platform
+  - ps: Update-NodeJsInstallation (Get-NodeJsLatestBuild $env:nodejs_version)
+  - set PATH=%APPDATA%\npm;%PATH%
+  - dir "C:\Program Files"
+  - dir "C:\Program Files (x86)"
+  - npm install
   - git submodule update --init --recursive
-  - npm install --msvs_version=2013
 
 build: off
 
