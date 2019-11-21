@@ -1,3 +1,8 @@
+# [Use node-redis](https://github.com/NodeRedis/node_redis)
+
+`hiredis-node` is deprecated, unmaintained and not updated in forever. [Use node-redis](https://github.com/NodeRedis/node_redis).
+---
+
 [![Build Status](https://travis-ci.org/redis/hiredis-node.png?branch=master)](https://travis-ci.org/redis/hiredis-node)
 
 # hiredis-node
