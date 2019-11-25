@@ -30,9 +30,7 @@ test("IntegerReply", function() {
 test("LargeIntegerReply", function() {
     var reader = new hiredis.Reader();
     reader.feed(":9223372036854775807\r\n");
-    // We test for a different value here, as JavaScript has no 64-bit integers,
-    // only IEEE double precision floating point numbers
-    assert.equal("9223372036854776000", String(reader.get()));
+    assert.equal("9223372036854775807", reader.get());
 });
 
 test("ErrorReply", function() {
